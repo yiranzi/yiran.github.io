@@ -45,28 +45,32 @@ export default class extends React.Component {
       ],
       currentSelect: 0,
       strongStyle: 'color: red;',
-      coursePath: '/pages/course/classroom/classroom',
-      courseName: '默认课程',
       outputJson: ''
     }
     this.indexCount = 0
-
+    this.defaultPath = '/pages/course/classroom/classroom'
+    this.defaultName = '默认课程'
     this.change = this.change.bind(this)
   }
 
 
 
   componentWillMount () {
-    this.makeJson()
+    this.jsToVNode()
   }
 
-  do (json) {
-    return json.nodes.map((item) => {
-      return this.get(item)
+  nodeToView (json) {
+    return json.nodes.map((node) => {
+      return this.vNodeToDom(node)
     })
   }
 
-  get (node) {
+  // 这个神奇的函数。可以利用react的函数，
+  // 将任何形式的（jsx，vnode）转化成实实在在的dom节点，并用react引擎完成渲染
+
+  // 从这角度上理解jsx 他只是描述dom节点并生成的一种快捷方式。 他会被解析 然后在用createElement函数渲染。
+  // 而vdom的生成，可以使用editor 也可以使用图形化界面。我们完全有能力维护正常的vdom
+  vNodeToDom (node) {
     let {name, attrs, children} = node
     let attrObj ={}
     if (attrs) {
@@ -95,7 +99,7 @@ export default class extends React.Component {
     } else {
       if (children) {
         let cArr = children.map((node, index) => {
-          return this.get(node)
+          return this.vNodeToDom(node)
         })
         return React.createElement(name, attrObj, cArr);
       } else {
@@ -104,21 +108,17 @@ export default class extends React.Component {
     }
   }
 
-  do2 (json) {
-    // get name and path
-
-    // render node
+  nodeToEdit (json) {
     return json.nodes.map((item) => {
       return this.renderBlock(item)
     })
   }
 
-  renderBlock (node) {
-    // 根据json。设置出来最单纯的block。
-    let {name, attrs, children} = node
-    let attrObj ={}
+  transAttrToReact (attrs) {
+    let attrObj = {}
     if (attrs) {
       let {style, src} = attrs
+      // 将输入的style样式转换为react的style
       if (style) {
         console.log('have style')
         style = style.replace(/\s+/g,"")
@@ -133,10 +133,18 @@ export default class extends React.Component {
       if (src) {
         attrObj.src = src
       }
+      // class是保留字
       if (attrs['class']) {
         attrObj.className = attrs['class']
       }
     }
+    return attrObj
+  }
+
+  renderBlock (node) {
+    // 根据json。设置出来最单纯的block。
+    let {attrs, children} = node
+    let attrObj = this.transAttrToReact(attrs)
     let {type, text} = node
     if (type === 'text') {
       return text
@@ -156,7 +164,7 @@ export default class extends React.Component {
 
   // 图片和标题是一一对应的。可以点击更换
 
-  makeJson () {
+  jsToVNode () {
     // 保存最后一次数据
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
@@ -166,15 +174,11 @@ export default class extends React.Component {
     })
     obj.myType = 'out-father'
     obj.nodes = arr
-    obj.path = this.state.coursePath
-    obj.name = this.state.courseName
+    obj.path = this.defaultPath
+    obj.name = this.defaultName
     this.setState({
       json: obj
     })
-  }
-
-  loadFromData () {
-
   }
 
   pushTopNode (item) {
@@ -271,20 +275,15 @@ export default class extends React.Component {
     return findIt
   }
 
-  formatJson () {
+  outputFormat () {
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
-    // 重新设置path和name
-    // this.state.json.path = this.state.coursePath
-    // this.state.json.name = this.state.courseName
 
     let json = JSON.parse(JSON.stringify(this.state.json))
 
-    // delete json.index
-    // delete json.myType
-    json.nodes.forEach((node) => {
-      this.formatDelete(node)
-    })
+    // json.nodes.forEach((node) => {
+    //   this.formatDelete(node)
+    // })
     this.setState({
       outputJson: JSON.stringify(json)
     })
@@ -361,7 +360,6 @@ export default class extends React.Component {
       let json = this.state.json
       json.path = value
       this.setState({
-        coursePath: value,
         json: json
       })
     } else {
@@ -369,7 +367,6 @@ export default class extends React.Component {
       let json = this.state.json
       json.name = value
       this.setState({
-        courseName: value,
         json: json
       })
     }
@@ -391,8 +388,6 @@ export default class extends React.Component {
         inputJson: json,
       })
     }
-    console.log('123123123')
-
   }
 
   change(type, index, content) {
@@ -461,21 +456,23 @@ export default class extends React.Component {
     })
   }
 
-  render () {
-    let {json} = this.state
-    return <div className={'out-out'} >
-      {/*<h1>{this.state.titleArr[this.state.currentSelect].title}</h1>*/}
-      {this.state.showChoose && this.renderTitleArr()}
-      <h1>课程名称：<input style={{width: '400px'}} value={this.state.courseName} onChange={(e) => {this.changeSetting(e, 2)}} /></h1>
-      <h1>课程路径：<input style={{width: '400px'}} value={this.state.coursePath} onChange={(e) => {this.changeSetting(e, 1)}} /></h1>
-      <div>强调样式设置：<input value={this.state.strongStyle} onChange={(e) => {this.setState({strongStyle: e.target.value})}} /></div>
-      {this.do2(json)}
-      {this.do(json)}
+  renderSettingDiv () {
+    return (
+      <div>
+        <h1>课程名称：<input style={{width: '400px'}} value={this.state.json.name} onChange={(e) => {this.changeSetting(e, 2)}} /></h1>
+        <h1>课程路径：<input style={{width: '400px'}} value={this.state.json.path} onChange={(e) => {this.changeSetting(e, 1)}} /></h1>
+        <div>强调样式设置：<input value={this.state.strongStyle} onChange={(e) => {this.setState({strongStyle: e.target.value})}} /></div>
+      </div>
+    )
+  }
+
+  renderUserControl () {
+    return (
       <div className={"flex"}>
         <div>
-          <div style={{display: 'flex'}}><div onClick={() => {this.formatJson()}}>一键生成</div><input value={this.state.outputJson} /></div>
+          <div style={{display: 'flex'}}><div onClick={() => {this.outputFormat()}}>一键生成</div><input value={this.state.outputJson} /></div>
         </div>
-        <div onClick={() => {this.makeJson()}}>一键重置</div>
+        <div onClick={() => {this.jsToVNode()}}>一键重置</div>
         <div>
           <div style={{display: 'flex'}}>
             <div onClick={() => {this.resetLast(0)}}>还原</div>
@@ -484,9 +481,18 @@ export default class extends React.Component {
           </div>
         </div>
       </div>
+    )
+  }
 
-      <style>
-        {`
+
+  render () {
+    return <div className={'out-out'} >
+      {this.renderSettingDiv()}
+      {this.nodeToEdit(this.state.json)}
+      {this.nodeToView(this.state.json)}
+      {this.renderUserControl()}
+      {this.state.showChoose && this.renderTitleArr()}
+      <style>{`
         .flex {
           display: flex;
         }
@@ -497,10 +503,10 @@ export default class extends React.Component {
           margin: 0
         }
         .rich-p {
-        fontSize: 14px;
-        color: #333333;
-        line-height: 24px;
-        margin: 20px auto;
+          fontSize: 14px;
+          color: #333333;
+          line-height: 24px;
+          margin: 20px auto;
         }
         .rich-img {
           height: 20px;
@@ -508,8 +514,7 @@ export default class extends React.Component {
           vertical-align: top;
           margin-right: 10px;
         }
-
-          .rich-span {
+        .rich-span {
           vertical-align: top;
           display: inline-block;
           width: 78%
