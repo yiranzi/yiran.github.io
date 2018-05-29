@@ -1,5 +1,8 @@
 import React from 'react'
-import Block from './block'
+import Block from './startInfoEditor/block'
+import Button from '../factory/button'
+
+import NodeContainer from '../components/nodeContainer'
 export default class extends React.Component {
   constructor (props) {
     super(props)
@@ -59,92 +62,16 @@ export default class extends React.Component {
     this.jsToVNode()
   }
 
-  nodeToView (json) {
-    return json.nodes.map((node) => {
-      return this.vNodeToDom(node)
-    })
-  }
-
-  // 这个神奇的函数。可以利用react的函数，
-  // 将任何形式的（jsx，vnode）转化成实实在在的dom节点，并用react引擎完成渲染
-
-  // 从这角度上理解jsx 他只是描述dom节点并生成的一种快捷方式。 他会被解析 然后在用createElement函数渲染。
-  // 而vdom的生成，可以使用editor 也可以使用图形化界面。我们完全有能力维护正常的vdom
-  vNodeToDom (node) {
-    let {name, attrs, children} = node
-    let attrObj ={}
-    if (attrs) {
-      let {style, src} = attrs
-      if (style) {
-        console.log('have style')
-        style = style.replace(/\s+/g,"")
-        let arrStyle = style.split(/:|;/)
-        attrObj.style = {}
-        for (let i = 0; i < arrStyle.length; i = i+2) {
-          if (arrStyle[i] && arrStyle[i+1]) {
-            attrObj.style[arrStyle[i]] = arrStyle[i+1]
-          }
-        }
-      }
-      if (src) {
-        attrObj.src = src
-      }
-      if (attrs['class']) {
-        attrObj.className = attrs['class']
-      }
-    }
-    let {type, text} = node
-    if (type === 'text') {
-      return text
-    } else {
-      if (children) {
-        let cArr = children.map((node, index) => {
-          return this.vNodeToDom(node)
-        })
-        return React.createElement(name, attrObj, cArr);
-      } else {
-        return React.createElement(name, attrObj);
-      }
-    }
-  }
-
   nodeToEdit (json) {
     return json.nodes.map((item) => {
       return this.renderBlock(item)
     })
   }
 
-  transAttrToReact (attrs) {
-    let attrObj = {}
-    if (attrs) {
-      let {style, src} = attrs
-      // 将输入的style样式转换为react的style
-      if (style) {
-        console.log('have style')
-        style = style.replace(/\s+/g,"")
-        let arrStyle = style.split(/:|;/)
-        attrObj.style = {}
-        for (let i = 0; i < arrStyle.length; i = i+2) {
-          if (arrStyle[i] && arrStyle[i+1]) {
-            attrObj.style[arrStyle[i]] = arrStyle[i+1]
-          }
-        }
-      }
-      if (src) {
-        attrObj.src = src
-      }
-      // class是保留字
-      if (attrs['class']) {
-        attrObj.className = attrs['class']
-      }
-    }
-    return attrObj
-  }
-
   renderBlock (node) {
     // 根据json。设置出来最单纯的block。
-    let {attrs, children} = node
-    let attrObj = this.transAttrToReact(attrs)
+    let {name, attrs, children, classInfo} = node
+    let attrObj = this.transAttrToReact(attrs, classInfo)
     let {type, text} = node
     if (type === 'text') {
       return text
@@ -168,17 +95,20 @@ export default class extends React.Component {
     // 保存最后一次数据
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
-    let obj = {}
-    let arr = this.state.titleArr.map((item, index) => {
-      return this.pushTopNode(item)
-    })
-    obj.myType = 'out-father'
-    obj.nodes = arr
-    obj.path = this.defaultPath
-    obj.name = this.defaultName
+    let node = this.makeButton()
     this.setState({
-      json: obj
+      json: node
     })
+  }
+
+  makeButton () {
+    console.log('makeButton')
+    let button = new Button('haha')
+    // 将相关的信息，提取并打包变为json的过程
+    // 这样，就能够在渲染view的时候，将这部分css信息，动态添加解析到style中。
+    // 并且可以修改这部分信息。修改之后，会对原来的hash进行重写。
+    // 现在这部分信息似乎保存在style中。
+    return button
   }
 
   pushTopNode (item) {
@@ -278,9 +208,18 @@ export default class extends React.Component {
   outputFormat () {
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
-
-    let json = JSON.parse(JSON.stringify(this.state.json))
-
+    // let json = JSON.parse(JSON.stringify(this.state.json))
+    let json = Object.assign({}, this.state.json)
+    json.classInfo.forEach((oneClass) => {
+      let arr = []
+      oneClass.styleArr.forEach((oneClass) => {
+        if (oneClass.name && oneClass.value) {
+          arr.push(oneClass)
+        }
+      })
+    })
+    // json.classInfo.styleArr = arr
+    // 开始格式化处理
     // json.nodes.forEach((node) => {
     //   this.formatDelete(node)
     // })
@@ -480,18 +419,41 @@ export default class extends React.Component {
             <div onClick={() => {this.resetLast(1)}}>导入</div>
           </div>
         </div>
+        <div onClick={() => {this.addView()}}>add view container</div>
       </div>
     )
   }
 
+  addView () {
+    let json = this.state.json
+    let vnode = {}
+    vnode.index = 2
+    vnode.nodeType = 'wx-view'
+    vnode.name = 'div'
+    vnode.attrs = {
+      class: 'baby'
+    }
+    vnode.classInfo = [{name: 'classname', styleArr: [{name: 'background-color', value: 'red'}]}]
+    vnode.children = [json]
+    console.log(vnode)
+    this.setState({
+      json: vnode
+    })
+  }
+
+  updateNode (node) {
+    this.setState({
+      json: node
+    })
+  }
 
   render () {
     return <div className={'out-out'} >
-      {this.renderSettingDiv()}
-      {this.nodeToEdit(this.state.json)}
-      {this.nodeToView(this.state.json)}
+      {/*{this.renderSettingDiv()}*/}
+      {/*{this.nodeToEdit(this.state.json)}*/}
+      <NodeContainer node={this.state.json} updateNode={(...e) => {this.updateNode(...e)}} />
       {this.renderUserControl()}
-      {this.state.showChoose && this.renderTitleArr()}
+      {/*{this.state.showChoose && this.renderTitleArr()}*/}
       <style>{`
         .flex {
           display: flex;
