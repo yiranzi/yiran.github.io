@@ -228,6 +228,14 @@ export default class extends React.Component {
     })
   }
 
+  outputClassFormat () {
+    let json = Object.assign({}, this.state.json)
+    this.setState({
+      outputJson: JSON.stringify(json.classInfo)
+    })
+  }
+
+
   formatDelete (nodes) {
     // delete nodes.index
     // delete nodes.myType
@@ -409,7 +417,8 @@ export default class extends React.Component {
     return (
       <div className={"flex"}>
         <div>
-          <div style={{display: 'flex'}}><div onClick={() => {this.outputFormat()}}>一键生成</div><input value={this.state.outputJson} /></div>
+          <div style={{display: 'flex'}}><div onClick={() => {this.outputFormat()}}>组件导出</div><input value={this.state.outputJson} /></div>
+          <div style={{display: 'flex'}}><div onClick={() => {this.outputClassFormat()}}>样式导出</div><input value={this.state.outputJson} /></div>
         </div>
         <div onClick={() => {this.jsToVNode()}}>一键重置</div>
         <div>

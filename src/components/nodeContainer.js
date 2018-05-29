@@ -2,6 +2,7 @@ import React from 'react'
 import EditClassName from '../components/editClassName'
 import NodeToDom from '../components/nodeToDom'
 import AddComponent from '../components/addComponent'
+import AddNewClass from '../components/addNewClass'
 
 // container 承载了最顶层的node的增减修改大权。所有node属性修改都在这里完成。其他组件来担负渲染而已。
 
@@ -10,10 +11,15 @@ export default class extends React.Component {
     super(props)
     this.resetArr = []
     this.state = {
-      currentDomIndex: 0
+      currentDomIndex: 0,
+      currenEditeDom: this.props.node,
+      currentClassJson: []
     }
     this.onSelectDom = this.onSelectDom.bind(this)
     this.updateNode = this.updateNode.bind(this)
+    this.saveToCache = this.saveToCache.bind(this)
+    this.updateClassName = this.updateClassName.bind(this)
+    this.setCurrentClass = this.setCurrentClass.bind(this)
   }
 
   cachePush (node) {
@@ -32,35 +38,6 @@ export default class extends React.Component {
     }
   }
 
-  EditClassNameChange (node, value, type, classNameIndex, classIndex) {
-    let classInfo = node.classInfo
-    this.cachePush(this.props.node)
-    switch (type) {
-      case 'class':
-        classInfo[classNameIndex].name = value;
-        break;
-      case 'name':
-        classInfo[classNameIndex].styleArr[classIndex].name = value;
-        break;
-      case 'value':
-        classInfo[classNameIndex].styleArr[classIndex].value = value;
-        break;
-      case 'delete':
-        classInfo[classNameIndex].styleArr.splice(classIndex, 1);
-        break;
-      case 'add':
-        classInfo[classNameIndex].styleArr.push({name: '', value: ''})
-        break;
-      case 'add2':
-        classInfo.splice(classNameIndex + 1, 0, {name: 'no-name', styleArr: [{name: '', value: ''}]});
-        break;
-      case 'delete2':
-        classInfo.splice(classNameIndex, 1);
-        break;
-    }
-    this.props.updateNode(this.props.node)
-  }
-
   saveToCache () {
     this.cachePush(this.props.node)
   }
@@ -73,19 +50,21 @@ export default class extends React.Component {
         return this.renderClassArray(node)
       }) || []
       if (node.classInfo) {
-        cArr.unshift(<EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} />)
+        cArr.unshift(<EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} updateNode={this.updateNode} node={node} />)
       }
         return cArr
     } else {
       if (node.classInfo) {
-        return <EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} />
+        return <EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} updateNode={this.updateNode} node={node} />
       }
     }
   }
 
-  onSelectDom (index) {
+  onSelectDom (node) {
+    console.log('haha')
     this.setState({
-      currentDomIndex: index
+      currentDomIndex: node.index,
+      currenEditeDom: node
     })
   }
 
@@ -96,6 +75,18 @@ export default class extends React.Component {
     this.props.updateNode(nextNode)
   }
 
+  updateClassName () {
+    console.log(this.props.node)
+    this.props.updateNode(this.props.node)
+  }
+
+  setCurrentClass (classJson) {
+    console.log(classJson)
+    this.setState({
+      currentClassJson: classJson
+    })
+  }
+
   // 从组建库中添加组建。
   // 实现外部内部的删减。
 
@@ -103,11 +94,12 @@ export default class extends React.Component {
     let {node} = this.props
     // 循环
     return <div>
-       <div>{this.state.currentDomIndex}</div>
-      <NodeToDom onSelectDom={this.onSelectDom} node={node} />
-      <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}/>
-      {this.renderClassArray(node)}
+       <div>当前选中的ID：{this.state.currentDomIndex}</div>
       <div onClick={() => {this.cacheReset()}}>还原</div>
+      <NodeToDom onSelectDom={this.onSelectDom} node={node} />
+      <EditClassName currentClassJson={this.state.currentClassJson} node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+      <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
+      <AddNewClass setCurrentClass={this.setCurrentClass} />
     </div>
   }
 }

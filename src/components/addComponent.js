@@ -103,7 +103,7 @@ export default class extends React.Component {
   // 还有要支持样式回拼（基础css + 页面css + 页面布局。或者是，保存vdom。而且还有维护好vdom和全局静态的关系）
   renderList () {
     let arr = comLibrary.staticIndex.map((comName, index) => {
-      return <div key={comName} onClick={() => {this.chooseComponent(comName)}}>{comName}</div>
+      return <div style={comName === this.state.currentType ? {color: 'red'} : {}} key={comName} onClick={() => {this.chooseComponent(comName)}}>{comName}</div>
     })
     return <div>
       {arr}
@@ -155,9 +155,8 @@ export default class extends React.Component {
   }
 
   render () {
-    let {classNameArr} = this.props
     // 循环
-    return <div>
+    return <div className='choose-component-out'>
       <div className='choose-button'>
         {this.renderCanPressButton('out')}
         {this.renderCanPressButton('inner')}
@@ -171,6 +170,9 @@ export default class extends React.Component {
           display: flex;
           width: 300px;
           justify-content: space-between;
+        }
+        .choose-component-out {
+          border: 1px solid black;
         }
       `}</style>
     </div>

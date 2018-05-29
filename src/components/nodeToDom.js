@@ -22,18 +22,18 @@ export default class extends React.Component {
           return this.vNodeToDom(node)
         })
         // return cArr
-        this.addControl(node.index, attrObj)
+        this.addControl(node, attrObj)
         return React.createElement(name, attrObj, cArr);
       } else {
-        this.addControl(node.index, attrObj)
+        this.addControl(node, attrObj)
         return React.createElement(name, attrObj);
       }
     }
   }
 
-  addControl (index, attrs) {
+  addControl (node, attrs) {
     attrs.onClick = (e) => {
-      this.props.onSelectDom(index)
+      this.props.onSelectDom(node)
       e.stopPropagation()
       // this.getClick.bind(this)
     }
