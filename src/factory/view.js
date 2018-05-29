@@ -1,13 +1,10 @@
 import Node from './node'
 
-function Button (string) {
+function View (string) {
   let wxView = new Node()
   wxView.nodeType = 'wx-view'
   wxView.name = 'div'
-  wxView.attrs['class'] = ''
-  wxView.classInfo = []
-  wxView.children = []
   return wxView
 }
 
-export default Button
+export default View

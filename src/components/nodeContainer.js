@@ -1,13 +1,19 @@
 import React from 'react'
 import EditClassName from '../components/editClassName'
 import NodeToDom from '../components/nodeToDom'
+import AddComponent from '../components/addComponent'
 
-// 这是方舟。他是node的控制工厂。
+// container 承载了最顶层的node的增减修改大权。所有node属性修改都在这里完成。其他组件来担负渲染而已。
 
 export default class extends React.Component {
   constructor (props) {
     super(props)
     this.resetArr = []
+    this.state = {
+      currentDomIndex: 0
+    }
+    this.onSelectDom = this.onSelectDom.bind(this)
+    this.updateNode = this.updateNode.bind(this)
   }
 
   cachePush (node) {
@@ -55,12 +61,15 @@ export default class extends React.Component {
     this.props.updateNode(this.props.node)
   }
 
+  saveToCache () {
+    this.cachePush(this.props.node)
+  }
+
+
   renderClassArray (node) {
     let {name, attrs, children, classInfo} = node
-    console.log('renderClassArray')
     if (children) {
       let cArr = children.map((node, index) => {
-        console.log(index)
         return this.renderClassArray(node)
       }) || []
       if (node.classInfo) {
@@ -69,22 +78,34 @@ export default class extends React.Component {
         return cArr
     } else {
       if (node.classInfo) {
-        console.log('haha')
         return <EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} />
       }
     }
   }
 
-  getClick () {
-    console.log('getClick')
+  onSelectDom (index) {
+    this.setState({
+      currentDomIndex: index
+    })
   }
 
+
+  updateNode (nextNode) {
+    console.log(nextNode)
+    this.saveToCache()
+    this.props.updateNode(nextNode)
+  }
+
+  // 从组建库中添加组建。
+  // 实现外部内部的删减。
 
   render () {
     let {node} = this.props
     // 循环
     return <div>
-      <NodeToDom node={node}/>
+       <div>{this.state.currentDomIndex}</div>
+      <NodeToDom onSelectDom={this.onSelectDom} node={node} />
+      <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}/>
       {this.renderClassArray(node)}
       <div onClick={() => {this.cacheReset()}}>还原</div>
     </div>

@@ -10,7 +10,6 @@ export default class extends React.Component {
   // 从这角度上理解jsx 他只是描述dom节点并生成的一种快捷方式。 他会被解析 然后在用createElement函数渲染。
   // 而vdom的生成，可以使用editor 也可以使用图形化界面。我们完全有能力维护正常的vdom
   vNodeToDom (node) {
-    console.log('vNodeToDom')
     // 根据json。设置出来最单纯的block。
     let {name, attrs, children, classInfo} = node
     let attrObj = this.transAttrToReact(attrs, classInfo)
@@ -24,7 +23,6 @@ export default class extends React.Component {
         })
         // return cArr
         this.addControl(node.index, attrObj)
-        console.log(attrObj)
         return React.createElement(name, attrObj, cArr);
       } else {
         this.addControl(node.index, attrObj)
@@ -34,8 +32,9 @@ export default class extends React.Component {
   }
 
   addControl (index, attrs) {
-    attrs.onClick = function () {
-      console.log(index)
+    attrs.onClick = (e) => {
+      this.props.onSelectDom(index)
+      e.stopPropagation()
       // this.getClick.bind(this)
     }
   }
@@ -54,7 +53,6 @@ export default class extends React.Component {
       }
       // classInfo动态注入到style样式中
       if (classInfo) {
-        console.log(classInfo)
         // 每个class
         classInfo.forEach((oneClass) => {
           oneClass.styleArr.forEach((styleString) => {

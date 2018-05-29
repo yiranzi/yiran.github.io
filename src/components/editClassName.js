@@ -32,7 +32,6 @@ export default class extends React.Component {
   }
 
   change (value, ...a) {
-    console.log('change')
     this.props.EditClassNameChange(value, ...a)
   }
 
@@ -81,7 +80,6 @@ export default class extends React.Component {
 
   render () {
     let {classNameArr} = this.props
-    console.log(classNameArr)
     // 循环
     return <div>
       {this.renderClassNamesCard(classNameArr)}

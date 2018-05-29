@@ -34,7 +34,7 @@ function Node () {
     nodeType: '',
     attrs: {},
     children: [],
-    classInfo: []
+    classInfo: [{name: 'new-node', styleArr: [{name: 'background-color', value: 'red'}, {name: 'height', value: '100px'}]}]
   }
   return newNode
 }
