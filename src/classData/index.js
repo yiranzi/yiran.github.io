@@ -6,10 +6,10 @@ let classLibrary = {
     let addClassJson = {}
     switch (type) {
       case 'center':
-        addClassJson = center.slice(0)
+        addClassJson = JSON.parse(JSON.stringify(center))
         break;
       case 'bold':
-        addClassJson = bold.slice(0)
+        addClassJson = JSON.parse(JSON.stringify(bold))
         break;
     }
     console.log(bold)

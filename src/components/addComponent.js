@@ -27,7 +27,8 @@ export default class extends React.Component {
           newDom.children.push(findDom.father)
           this.props.updateNode(newDom)
         } else {
-          findDom.father.children.push(newDom)
+          newDom.children.push(findDom.targetDom)
+          findDom.father.children.splice(findDom.index, 1, newDom)
           this.props.updateNode(nodeShadow)
         }
       } else {

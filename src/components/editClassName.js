@@ -54,7 +54,17 @@ export default class extends React.Component {
         classInfo.splice(classNameIndex + 1, 0, {name: 'no-name', styleArr: [{name: '', value: ''}]});
         break;
       case 'add3':
-        this.props.node.classInfo = classInfo.concat(value)
+        let arr = JSON.parse(JSON.stringify(value))
+        // if (this.last !== arr) {
+        //   this.last = arr
+        // } else {
+        //   console.log('hehe')
+        // }
+        // arr.forEach((item, index) => {
+        //   classInfo.push(item)
+        // })
+
+        this.props.node.classInfo = classInfo.concat(arr)
         break;
       case 'delete2':
         classInfo.splice(classNameIndex, 1);
