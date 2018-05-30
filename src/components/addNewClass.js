@@ -6,7 +6,7 @@ export default class extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      currentType: 'center'
+      currentType: ''
     }
   }
 
@@ -20,19 +20,29 @@ export default class extends React.Component {
   }
 
   chooseClass (currentType) {
+
     this.setState({
       currentType: currentType
     })
-    let addClassJson = classLibrary.addClass(currentType)
-    console.log(addClassJson)
-    this.props.setCurrentClass(addClassJson)
+    // console.log(addClassJson)
+    // this.props.setCurrentClass(addClassJson)
+  }
+
+  plusClassTo () {
+    if (this.state.currentType) {
+      let addClassJson = classLibrary.addClass(this.state.currentType)
+      let arr = JSON.parse(JSON.stringify(addClassJson))
+      let nodeShadow = JSON.parse(JSON.stringify(this.props.node))
+      nodeShadow.classInfo = nodeShadow.classInfo.concat(arr)
+      this.props.updateNode(nodeShadow)
+    }
   }
 
   render () {
     // 循环
     return <div className='choose-class-out'>
       {this.renderList()}
-      {this.state.currentType }
+      <div onClick={() => {this.plusClassTo()}}>导入样式</div>
       <style jsx>{`
         .choose-class-out {
           border: 1px solid black;

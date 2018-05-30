@@ -1,6 +1,6 @@
 import React from 'react'
 import Block from './startInfoEditor/block'
-import Button from '../factory/button'
+import comLibrary from '../nodeData/index'
 
 import NodeContainer from '../components/nodeContainer'
 export default class extends React.Component {
@@ -95,20 +95,10 @@ export default class extends React.Component {
     // 保存最后一次数据
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
-    let node = this.makeButton()
+    let node = comLibrary.newComponent('view')
     this.setState({
       json: node
     })
-  }
-
-  makeButton () {
-    console.log('makeButton')
-    let button = new Button('haha')
-    // 将相关的信息，提取并打包变为json的过程
-    // 这样，就能够在渲染view的时候，将这部分css信息，动态添加解析到style中。
-    // 并且可以修改这部分信息。修改之后，会对原来的hash进行重写。
-    // 现在这部分信息似乎保存在style中。
-    return button
   }
 
   pushTopNode (item) {
@@ -208,8 +198,7 @@ export default class extends React.Component {
   outputFormat () {
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
-    // let json = JSON.parse(JSON.stringify(this.state.json))
-    let json = Object.assign({}, this.state.json)
+    let json = JSON.parse(JSON.stringify(this.state.json))
     json.classInfo.forEach((oneClass) => {
       let arr = []
       oneClass.styleArr.forEach((oneClass) => {
@@ -229,7 +218,7 @@ export default class extends React.Component {
   }
 
   outputClassFormat () {
-    let json = Object.assign({}, this.state.json)
+    let json = JSON.parse(JSON.stringify(this.state.json))
     this.setState({
       outputJson: JSON.stringify(json.classInfo)
     })
@@ -428,7 +417,6 @@ export default class extends React.Component {
             <div onClick={() => {this.resetLast(1)}}>导入</div>
           </div>
         </div>
-        <div onClick={() => {this.addView()}}>add view container</div>
       </div>
     )
   }
@@ -466,6 +454,9 @@ export default class extends React.Component {
       <style>{`
         .flex {
           display: flex;
+        }
+        .out-out {
+          background-color: #e5d6d6;
         }
         .flex > div {
           margin-right: 30px;

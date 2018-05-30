@@ -3,6 +3,7 @@ import EditClassName from '../components/editClassName'
 import NodeToDom from '../components/nodeToDom'
 import AddComponent from '../components/addComponent'
 import AddNewClass from '../components/addNewClass'
+import Demo from './test'
 
 // container 承载了最顶层的node的增减修改大权。所有node属性修改都在这里完成。其他组件来担负渲染而已。
 
@@ -94,12 +95,25 @@ export default class extends React.Component {
     let {node} = this.props
     // 循环
     return <div>
-       <div>当前选中的ID：{this.state.currentDomIndex}</div>
-      <div onClick={() => {this.cacheReset()}}>还原</div>
-      <NodeToDom onSelectDom={this.onSelectDom} node={node} />
-      <EditClassName currentClassJson={this.state.currentClassJson} node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
-      <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
-      <AddNewClass setCurrentClass={this.setCurrentClass} />
+      <div className='menu-out-column'>
+        <div>
+          <div>当前选中的ID：{this.state.currentDomIndex}</div>
+          <div onClick={() => {this.cacheReset()}}>还原</div>
+          <NodeToDom onSelectDom={this.onSelectDom} node={node} />
+          <EditClassName node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+        </div>
+        <div>
+          <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
+          <AddNewClass node={this.props.node} updateNode={this.updateNode} />
+        </div>
+      </div>
+      <Demo />
+      <style jsx>{`
+          .menu-out-column {
+            display: flex;
+            justify-content: flex-start;
+          }
+        `}</style>
     </div>
   }
 }

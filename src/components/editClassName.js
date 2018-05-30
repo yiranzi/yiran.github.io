@@ -53,19 +53,6 @@ export default class extends React.Component {
       case 'add2':
         classInfo.splice(classNameIndex + 1, 0, {name: 'no-name', styleArr: [{name: '', value: ''}]});
         break;
-      case 'add3':
-        let arr = JSON.parse(JSON.stringify(value))
-        // if (this.last !== arr) {
-        //   this.last = arr
-        // } else {
-        //   console.log('hehe')
-        // }
-        // arr.forEach((item, index) => {
-        //   classInfo.push(item)
-        // })
-
-        this.props.node.classInfo = classInfo.concat(arr)
-        break;
       case 'delete2':
         classInfo.splice(classNameIndex, 1);
         break;
@@ -121,7 +108,7 @@ export default class extends React.Component {
     // 循环
     return <div>
       {this.renderClassNamesCard(classInfo)}
-      <div onClick={() => {this.EditClassNameChange(this.props.currentClassJson, 'add3')}}>导入样式</div>
+
     </div>
   }
 }

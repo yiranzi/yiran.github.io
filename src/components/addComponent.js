@@ -1,5 +1,5 @@
 import React from 'react'
-import comLibrary from '../factory/index'
+import comLibrary from '../nodeData/index'
 
 
 export default class extends React.Component {
@@ -16,10 +16,11 @@ export default class extends React.Component {
   }
 
   add () {
+    console.log('add')
     let {isOutAdd, currentType} = this.state
     let newDom = comLibrary.newComponent(currentType)
     let {currentDomIndex, node} = this.props
-    let nodeShadow = Object.assign({}, node)
+    let nodeShadow = JSON.parse(JSON.stringify(node))
     let findDom = this.getNode(nodeShadow, currentDomIndex)
     if (findDom.father && findDom.targetDom) {
       if (isOutAdd) {
@@ -28,7 +29,7 @@ export default class extends React.Component {
           this.props.updateNode(newDom)
         } else {
           newDom.children.push(findDom.targetDom)
-          findDom.father.children.splice(findDom.index, 1, newDom)
+          findDom.father.children.splice(findDom.childrenIndex, 1, newDom)
           this.props.updateNode(nodeShadow)
         }
       } else {
@@ -41,7 +42,21 @@ export default class extends React.Component {
   }
 
   delete () {
+    console.log('delte')
+    let {currentDomIndex, node} = this.props
+    let nodeShadow = JSON.parse(JSON.stringify(node))
+    let findDom = this.getNode(nodeShadow, currentDomIndex)
 
+    if (findDom.father && findDom.targetDom) {
+      // 他是否是根节点？
+      if (findDom.father.index !== findDom.targetDom.index) {
+        // 更换绑定。
+        findDom.father.children.splice(findDom.childrenIndex, 1)
+        this.props.updateNode(nodeShadow)
+      }
+    } else {
+      console.log('not found')
+    }
   }
 
   findNode () {
