@@ -70,13 +70,19 @@ export default class extends React.Component {
         }
         break;
       case 'add2':
-        classInfo.splice(classNameIndex + 1, 0, UtilTool.getClone(this.newClassJson));
+        classInfo.splice(classNameIndex + 1, 0, this.getEmptyClass());
         break;
       case 'delete2':
         classInfo.splice(classNameIndex, 1);
         break;
     }
     this.props.updateClassName()
+  }
+
+  getEmptyClass () {
+    let obj = UtilTool.getClone(this.newClassJson)
+    obj.name = UtilTool.uuid(3, 60)
+    return obj
   }
 
   renderOneClass (className, classNameIndex) {
@@ -99,7 +105,7 @@ export default class extends React.Component {
 
   renderClassNamesCard (classNames) {
     if (!classNames.length) {
-      classNames.push(UtilTool.getClone(this.newClassJson))
+      classNames.push(this.getEmptyClass())
     }
     let arr = classNames.map((className, classNameIndex) => {
       return (<div key={classNameIndex + classNameIndex} className='class-edit-div'>

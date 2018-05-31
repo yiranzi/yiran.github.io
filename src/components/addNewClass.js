@@ -30,23 +30,18 @@ export default class extends React.Component {
 
   plusClassTo () {
     if (this.state.currentType) {
-      this.props.saveToCache()
-      let addClassJson = classLibrary.addClass(this.state.currentType)
-      let arr = JSON.parse(JSON.stringify(addClassJson))
+      let addClassJson = JSON.parse(JSON.stringify(classLibrary.addClass(this.state.currentType)))
       // 去重
-      let afterArr = []
-      arr.map((waitPlusClass) => {
-        let result = this.props.node.classInfo.find((originClass) => {
-          if (waitPlusClass.name === originClass.name) {
-            return true
-          }
-        })
-        if (!result) {
-          afterArr.push(waitPlusClass)
+      let ifHave = this.props.node.classInfo.find((originClass) => {
+        if (addClassJson.name === originClass.name) {
+          return true
         }
       })
-      this.props.node.classInfo = this.props.node.classInfo.concat(afterArr)
-      this.props.updateClassName()
+      if (!ifHave) {
+        this.props.saveToCache()
+        this.props.node.classInfo.push(addClassJson)
+        this.props.updateClassName()
+      }
     }
   }
 
