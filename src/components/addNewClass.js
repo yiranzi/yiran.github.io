@@ -30,11 +30,23 @@ export default class extends React.Component {
 
   plusClassTo () {
     if (this.state.currentType) {
+      this.props.saveToCache()
       let addClassJson = classLibrary.addClass(this.state.currentType)
       let arr = JSON.parse(JSON.stringify(addClassJson))
-      let nodeShadow = JSON.parse(JSON.stringify(this.props.node))
-      nodeShadow.classInfo = nodeShadow.classInfo.concat(arr)
-      this.props.updateNode(nodeShadow)
+      // 去重
+      let afterArr = []
+      arr.map((waitPlusClass) => {
+        let result = this.props.node.classInfo.find((originClass) => {
+          if (waitPlusClass.name === originClass.name) {
+            return true
+          }
+        })
+        if (!result) {
+          afterArr.push(waitPlusClass)
+        }
+      })
+      this.props.node.classInfo = this.props.node.classInfo.concat(afterArr)
+      this.props.updateClassName()
     }
   }
 
@@ -47,7 +59,7 @@ export default class extends React.Component {
         .choose-class-out {
           border: 1px solid black;
           display: flex;
-          width: 300px;
+          width: 150px;
           justify-content: space-between;
         }
       `}</style>

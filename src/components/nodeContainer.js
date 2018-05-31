@@ -1,9 +1,10 @@
 import React from 'react'
 import EditClassName from '../components/editClassName'
-import NodeToDom from '../components/nodeToDom'
+import EditText from '../components/editText'
 import AddComponent from '../components/addComponent'
 import AddNewClass from '../components/addNewClass'
-import Demo from './test'
+import NodeToTree from './nodeToTree'
+import NodeToDom from '../components/nodeToDom'
 
 // container 承载了最顶层的node的增减修改大权。所有node属性修改都在这里完成。其他组件来担负渲染而已。
 
@@ -12,7 +13,7 @@ export default class extends React.Component {
     super(props)
     this.resetArr = []
     this.state = {
-      currentDomIndex: 0,
+      currentDomIndex: this.props.node.index,
       currenEditeDom: this.props.node,
       currentClassJson: []
     }
@@ -61,14 +62,47 @@ export default class extends React.Component {
     }
   }
 
-  onSelectDom (node) {
-    console.log('haha')
-    this.setState({
-      currentDomIndex: node.index,
-      currenEditeDom: node
-    })
+  onSelectDom (findIndex) {
+    let findNode
+    if (findIndex) {
+      findNode = this.getNode(this.props.node, findIndex)
+      this.setState({
+        currentDomIndex: findNode.index,
+        currenEditeDom: findNode
+      })
+      this.props.changeCurrentDom(findNode)
+    }
   }
 
+  getNode (node, findIndex) {
+    if (node.index === findIndex) {
+      // 查找到
+      if (node.index === this.props.node.index) {
+        // 如果就是本人
+        return node
+      } else {
+        return false
+      }
+    } else {
+      let findElement = true
+      if (node.children) {
+        node.children.every((item, index) => {
+          let result = this.getNode(item, findIndex)
+          if (result === true ) {
+            return true
+          } else if (result === false) {
+            // 如果查找到
+            findElement = item
+            return false
+          } else {
+            findElement = result
+            return false
+          }
+        })
+      }
+      return findElement
+    }
+  }
 
   updateNode (nextNode) {
     console.log(nextNode)
@@ -77,12 +111,10 @@ export default class extends React.Component {
   }
 
   updateClassName () {
-    console.log(this.props.node)
     this.props.updateNode(this.props.node)
   }
 
   setCurrentClass (classJson) {
-    console.log(classJson)
     this.setState({
       currentClassJson: classJson
     })
@@ -99,21 +131,23 @@ export default class extends React.Component {
         <div>
           <div>当前选中的ID：{this.state.currentDomIndex}</div>
           <div onClick={() => {this.cacheReset()}}>还原</div>
-          <NodeToDom onSelectDom={this.onSelectDom} node={node} />
-          <EditClassName node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
-        </div>
+          <NodeToDom currentDomIndex={this.state.currentDomIndex} onSelectDom={this.onSelectDom} node={node} />
+          {this.state.currenEditeDom.nodeType === 'node-text' ?
+            <EditText node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} /> : <EditClassName node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+          }
+          </div>
         <div>
           <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
-          <AddNewClass node={this.props.node} updateNode={this.updateNode} />
+          <AddNewClass node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
         </div>
+        <NodeToTree onSelectDom={this.onSelectDom} node={node} updateNode={this.updateNode} />
       </div>
-      <Demo />
       <style jsx>{`
           .menu-out-column {
             display: flex;
             justify-content: flex-start;
           }
-        `}</style>
+      `}</style>
     </div>
   }
 }

@@ -1,7 +1,9 @@
 import React from 'react'
+import UtilTool from '../util/tools'
 export default class extends React.Component {
   constructor (props) {
     super(props)
+    this.newClassJson = {name: 'no-name', styleArr: [{name: '', value: ''}]}
   }
 
   nameChange (e, classNameIndex, classIndex) {
@@ -20,8 +22,15 @@ export default class extends React.Component {
     this.EditClassNameChange('', 'delete', classNameIndex, classIndex)
   }
 
+  classNameCopy (classNameIndex, classIndex) {
+    this.EditClassNameChange('', 'copy', classNameIndex, classIndex)
+  }
+
   classNameAdd (classNameIndex) {
     this.EditClassNameChange('', 'add', classNameIndex)
+  }
+  classNameAddCopy (classNameIndex) {
+    this.EditClassNameChange('', 'addCopy', classNameIndex)
   }
   classNameAdd2 (classNameIndex) {
     this.EditClassNameChange('', 'add2', classNameIndex)
@@ -30,6 +39,7 @@ export default class extends React.Component {
   classNameDelete2 (classNameIndex) {
     this.EditClassNameChange('', 'delete2', classNameIndex)
   }
+
 
   EditClassNameChange (value, type, classNameIndex, classIndex) {
     this.props.saveToCache()
@@ -47,11 +57,20 @@ export default class extends React.Component {
       case 'delete':
         classInfo[classNameIndex].styleArr.splice(classIndex, 1);
         break;
+      case 'copy':
+        this.copyClass = classInfo[classNameIndex];
+        break;
       case 'add':
         classInfo[classNameIndex].styleArr.push({name: '', value: ''})
         break;
+      case 'addCopy':
+        console.log('check')
+        if (this.copyClass) {
+          classInfo.splice(classNameIndex + 1, 0, this.copyClass);
+        }
+        break;
       case 'add2':
-        classInfo.splice(classNameIndex + 1, 0, {name: 'no-name', styleArr: [{name: '', value: ''}]});
+        classInfo.splice(classNameIndex + 1, 0, UtilTool.getClone(this.newClassJson));
         break;
       case 'delete2':
         classInfo.splice(classNameIndex, 1);
@@ -79,10 +98,15 @@ export default class extends React.Component {
   }
 
   renderClassNamesCard (classNames) {
+    if (!classNames.length) {
+      classNames.push(UtilTool.getClone(this.newClassJson))
+    }
     let arr = classNames.map((className, classNameIndex) => {
       return (<div key={classNameIndex + classNameIndex} className='class-edit-div'>
         <div className='class-name'>
           <input onChange={(e) => {this.classNameChange(e, classNameIndex)}} value={className.name}/>
+          <div style={{color: 'green'}} onClick={() => {this.classNameCopy(classNameIndex)}}>copy</div>
+          <div style={{color: 'green'}} onClick={() => {this.classNameAddCopy(classNameIndex)}}>addCopy</div>
           <div onClick={() => {this.classNameAdd2(classNameIndex)}}>add</div>
           <div onClick={() => {this.classNameDelete2(classNameIndex)}}>delete</div>
         </div>
@@ -108,7 +132,6 @@ export default class extends React.Component {
     // 循环
     return <div>
       {this.renderClassNamesCard(classInfo)}
-
     </div>
   }
 }

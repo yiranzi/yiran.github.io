@@ -11,10 +11,15 @@ export default class extends React.Component {
   // 而vdom的生成，可以使用editor 也可以使用图形化界面。我们完全有能力维护正常的vdom
   vNodeToDom (node) {
     // 根据json。设置出来最单纯的block。
-    let {name, attrs, children, classInfo} = node
+    let {name, attrs, children, classInfo, index} = node
     let attrObj = this.transAttrToReact(attrs, classInfo)
-    let {type, text} = node
-    if (type === 'text') {
+    // 增加选中效果
+    attrObj = JSON.parse(JSON.stringify(attrObj))
+    if (index === this.props.currentDomIndex) {
+      attrObj.style.backgroundColor = 'gray'
+    }
+    let {nodeType, text} = node
+    if (nodeType === 'node-text') {
       return text
     } else {
       if (children) {
@@ -33,9 +38,8 @@ export default class extends React.Component {
 
   addControl (node, attrs) {
     attrs.onClick = (e) => {
-      this.props.onSelectDom(node)
+      this.props.onSelectDom(node.index)
       e.stopPropagation()
-      // this.getClick.bind(this)
     }
   }
 

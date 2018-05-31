@@ -6,8 +6,8 @@ export default class extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      isOutAdd: true,
-      currentType: 'view'
+      isOutAdd: false,
+      currentType: 'normalText'
     }
   }
 
@@ -57,10 +57,6 @@ export default class extends React.Component {
     } else {
       console.log('not found')
     }
-  }
-
-  findNode () {
-
   }
 
   // 遍历树 查找到目标
@@ -184,7 +180,7 @@ export default class extends React.Component {
         .choose-button {
           border: 1px solid black;
           display: flex;
-          width: 300px;
+          width: 100px;
           justify-content: space-between;
         }
         .choose-component-out {
