@@ -118,6 +118,19 @@ export default class extends React.Component {
   }
 
   render () {
-    return (this.vNodeToDom(this.props.node))
+    if (this.props.node) {
+      return <div className='node'>
+        {this.vNodeToDom(this.props.node)}
+        <style jsx>{`
+          .node {
+            width: 375px;
+            min-height: 667px;
+            background-color: #ffffff;
+          }
+        `}</style>
+      </div>
+    } else {
+      return null
+    }
   }
 }

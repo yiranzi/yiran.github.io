@@ -1,20 +1,28 @@
 import React from 'react'
-import Block from './startInfoEditor/block'
-import comLibrary from '../nodeData/index'
+
+// import AxiosUtil from '../util/axios'
+
+import {LibProvider, Lib} from '../context/componentsLib'
 
 import NodeContainer from '../components/nodeContainer'
-export default class extends React.Component {
+export class Index extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      json: {},
-      currentDom: {},
-      outputJson: ''
+      json: undefined,
+      currentDom: undefined,
+      outputJson: '',
+      outputClassJson: ''
     }
     this.changeCurrentDom = this.changeCurrentDom.bind(this)
+    this.updateClass = this.updateClass.bind(this)
+    this.changeName = this.changeName.bind(this)
+
   }
 
-  componentWillMount () {
+  componentWillMount = async () => {
+    await this.props.libContext.updateLib('vnode')
+    await this.props.libContext.updateLib('class')
     this.jsToVNode()
   }
 
@@ -45,23 +53,66 @@ export default class extends React.Component {
     }
   }
 
+  outputAll () {
+    // this.outputFormat(this.state.json)
+    // this.outputClassFormat(this.state.json)
+  }
+
+  changeName (e) {
+    let {currentDom} = this.state
+    currentDom.pageName = e.target.value
+    this.setState({
+      currentDom: currentDom
+    })
+  }
+
   renderUserControl () {
-    return (
-      <div className={"flex"}>
-        <div>
-          <div style={{display: 'flex'}}><div onClick={() => {this.outputFormat()}}>组件导出</div><input value={this.state.outputJson} /></div>
-          <div style={{display: 'flex'}}><div onClick={() => {this.outputClassFormat()}}>样式导出</div><input value={this.state.outputJson} /></div>
-        </div>
-        <div onClick={() => {this.jsToVNode()}}>一键重置</div>
-        <div>
-          <div style={{display: 'flex'}}>
-            <div onClick={() => {this.resetLast(0)}}>还原</div>
-            <input value={this.state.inputJson} onChange={(e) => {this.setState({inputJson: e.target.value})}}/>
-            <div onClick={() => {this.resetLast(1)}}>导入</div>
+    if (this.state.currentDom) {
+      return (
+        <div className={""}>
+          <div>
+            <div style={{display: 'flex'}}><div onClick={() => {this.outputAll()}}>根节点输出小程序</div></div>
+            <div style={{display: 'flex'}}><input value={this.state.currentDom.pageName || ''} onChange={this.changeName} /><div onClick={() => {this.outputFormat()}}>当前节点保存vnode</div></div>
+            <div style={{display: 'flex'}}><div>vnode：</div><input value={this.state.outputJson} /></div>
+            <div style={{display: 'flex'}}><input value={JSON.stringify(this.props.libContext.copyClass)} /><div onClick={() => {this.props.libContext.postLib(this.props.libContext.copyClass, 'class')}}>保存class</div></div>
+          </div>
+          <div onClick={() => {this.jsToVNode()}}>一键重置</div>
+          <div>
+            <div style={{display: 'flex'}}>
+              <div onClick={() => {this.resetLast(0)}}>还原</div>
+              <input value={this.state.inputJson} onChange={(e) => {this.setState({inputJson: e.target.value})}}/>
+              <div onClick={() => {this.resetLast(1)}}>导入</div>
+              <div onClick={this.updateClass}>净化</div>
+            </div>
           </div>
         </div>
-      </div>
-    )
+      )
+    }
+  }
+
+  updateClass () {
+    const loop = (node) => {
+      let {children} = node
+      if (node.classInfo) {
+        node.classInfo.forEach((item, index) => {
+          if (item.name.includes('zao') || item.name.includes('default')) {
+            node.classInfo[index] = this.props.libContext.getLib(item.name, 'class') || node.classInfo[index]
+          }
+        })
+      }
+      if (children && children.length) {
+        children.forEach((node) => {
+          loop(node)
+        })
+      }
+    }
+    loop(this.state.json)
+    this.setState({
+      json: this.state.json,
+      currentDom: this.state.json
+    },() => {
+      this.outputFormat()
+    })
   }
 
   updateNode (node) {
@@ -77,33 +128,90 @@ export default class extends React.Component {
   }
 
 
-  outputFormat () {
-    localStorage.setItem('saveWorld', JSON.stringify(this.state.currentDom))
-    console.log('重置之前。上次的结果已经保存。')
-    let json = JSON.parse(JSON.stringify(this.state.currentDom))
-    json.classInfo.forEach((oneClass) => {
-      let arr = []
-      oneClass.styleArr.forEach((oneClass) => {
-        if (oneClass.name && oneClass.value) {
-          arr.push(oneClass)
-        }
+  outputFormat (json = this.state.currentDom) {
+    if (this.state.currentDom.pageName) {
+      localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
+      console.log('重置之前。上次的结果已经保存。')
+      json = JSON.parse(JSON.stringify(json))
+      json.classInfo.forEach((oneClass) => {
+        let arr = []
+        oneClass.styleArr.forEach((oneClass) => {
+          if (oneClass.name && oneClass.value) {
+            arr.push(oneClass)
+          }
+        })
       })
-    })
-    // json.classInfo.styleArr = arr
-    // 开始格式化处理
-    // json.nodes.forEach((node) => {
-    //   this.formatDelete(node)
-    // })
-    this.setState({
-      outputJson: JSON.stringify(json)
-    })
+      // json.classInfo.styleArr = arr
+      // 开始格式化处理
+      // json.nodes.forEach((node) => {
+      //   this.formatDelete(node)
+      // })
+      this.setState({
+        outputJson: JSON.stringify(json)
+      })
+      this.props.libContext.postLib(this.state.currentDom, 'vnode')
+    } else {
+      console.error('no name')
+    }
   }
 
 
-  outputClassFormat () {
-    let json = JSON.parse(JSON.stringify(this.state.currentDom))
+  outputClassFormat (json = this.state.currentDom) {
+    json = JSON.parse(JSON.stringify(json))
+    // 遍历
+    let arr = [
+
+    ]
+    const getClassLoop = (node) => {
+      if (node.classInfo) {
+        arr = arr.concat(node.classInfo)
+      }
+      if (node.children) {
+        node.children.forEach((item) => {
+          getClassLoop(item)
+        })
+      }
+    }
+    getClassLoop(json)
+    // this.jsonToCss(arr)
     this.setState({
-      outputJson: JSON.stringify(json.classInfo)
+      outputClassJson: JSON.stringify(arr)
+    })
+    // this.postClassData(arr)
+  }
+
+  // postClassData = async (arr) => {
+  //   // 准备发起请求。
+  //   console.log('try')
+  //   let name = arr[0].name
+  //   let type = 'class'
+  //   let data = JSON.stringify(arr[0])
+  //   console.log(data)
+  //   // let courseInfo = await AxiosUtil.get(`write?type=${type}&name=${name}&data=${data}`)
+  //   let courseInfo = await AxiosUtil.post(`write`, {name, type, data})
+  // }
+
+  jsonToCss (jsonArr) {
+    let afterUnique = {}
+    let string = ''
+    // 1 遍历去重
+    const unique = (arr) => {
+      arr.forEach((item) => {
+        afterUnique[item.name] = item.styleArr
+      })
+    }
+    const pipe = (classInnerArr, subString) => {
+      classInnerArr.forEach((classInner) => {
+        let {name, value} = classInner
+        subString += name + ': ' + value + ';'
+      })
+      return subString
+    }
+    unique(jsonArr)
+    Object.keys(afterUnique).forEach((classNameKey) => {
+      let subString = ''
+      subString = pipe(afterUnique[classNameKey], subString)
+      string += '.' + classNameKey + `{${subString}}`
     })
   }
 
@@ -115,12 +223,12 @@ export default class extends React.Component {
     // 保存最后一次数据
     localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
     console.log('重置之前。上次的结果已经保存。')
-    let node = comLibrary.newComponent('view')
+    let node = this.props.libContext.getLib('view', 'vnode')
     this.setState({
-      json: node
+      json: node,
+      currentDom: node,
     })
   }
-
 
   resetLast (type) {
     // 导入
@@ -128,6 +236,7 @@ export default class extends React.Component {
       let json = this.state.inputJson
       this.setState({
         json: JSON.parse(json),
+        currentDom: JSON.parse(json),
         inputJson: json,
       })
     } else {
@@ -141,10 +250,12 @@ export default class extends React.Component {
   }
 
   render () {
-    return <div className={'out-out'} >
-      <NodeContainer node={this.state.json} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />
-      {this.renderUserControl()}
-      <style>{`
+    return <div className={'out-out'}>
+      <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.index}</div>
+      <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.pageName}</div>
+        {this.state.json && <NodeContainer node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
+        {this.renderUserControl()}
+        <style>{`
         * {
           margin: 0
         }
@@ -155,7 +266,15 @@ export default class extends React.Component {
           background-color: #e5d6d6;
         }
       `}
-      </style>
-    </div>
+        </style>
+      </div>
   }
+}
+
+export default function (props) {
+  return <LibProvider>
+    <Lib.Consumer>
+      {libContext => (<Index libContext={libContext} {...props} />)}
+    </Lib.Consumer>
+  </LibProvider>
 }

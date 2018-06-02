@@ -21,12 +21,10 @@ export default class extends React.Component {
   }
 
   inputChange (e) {
-    console.log(e.target.value)
     this.props.change(3, this.props.node.index, e.target.value)
   }
 
   changeImage () {
-    console.log('changeImage')
     this.props.change(4, this.props.node.index)
   }
 

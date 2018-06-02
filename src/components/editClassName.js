@@ -58,15 +58,14 @@ export default class extends React.Component {
         classInfo[classNameIndex].styleArr.splice(classIndex, 1);
         break;
       case 'copy':
-        this.copyClass = classInfo[classNameIndex];
+        this.props.libContext.changeCopyClass(classInfo[classNameIndex])
         break;
       case 'add':
         classInfo[classNameIndex].styleArr.push({name: '', value: ''})
         break;
       case 'addCopy':
-        console.log('check')
-        if (this.copyClass) {
-          classInfo.splice(classNameIndex + 1, 0, this.copyClass);
+        if (this.props.libContext.copyClass) {
+          classInfo.splice(classNameIndex + 1, 0, this.props.libContext.copyClass);
         }
         break;
       case 'add2':
@@ -136,8 +135,12 @@ export default class extends React.Component {
   render () {
     let {classInfo} = this.props.node
     // 循环
-    return <div>
-      {this.renderClassNamesCard(classInfo)}
-    </div>
+    if (classInfo) {
+      return <div>
+        {this.renderClassNamesCard(classInfo)}
+      </div>
+    } else {
+      return null
+    }
   }
 }

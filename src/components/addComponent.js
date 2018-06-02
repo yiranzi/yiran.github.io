@@ -1,13 +1,11 @@
 import React from 'react'
-import comLibrary from '../nodeData/index'
+import {Lib}from '../context/componentsLib'
 
-
-export default class extends React.Component {
+export class AddComponent extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      isOutAdd: false,
-      currentType: 'normalText'
+      currentType: ''
     }
   }
 
@@ -16,33 +14,33 @@ export default class extends React.Component {
   }
 
   add () {
-    console.log('add')
-    let {isOutAdd, currentType} = this.state
-    let newDom = comLibrary.newComponent(currentType)
+    let {currentType} = this.state
+    let newDom = this.props.libContext.getLib(currentType, 'vnode')
     let {currentDomIndex, node} = this.props
     let nodeShadow = JSON.parse(JSON.stringify(node))
     let findDom = this.getNode(nodeShadow, currentDomIndex)
     if (findDom.father && findDom.targetDom) {
-      if (isOutAdd) {
-        if (findDom.father.index === findDom.targetDom.index) {
-          newDom.children.push(findDom.father)
-          this.props.updateNode(newDom)
-        } else {
-          newDom.children.push(findDom.targetDom)
-          findDom.father.children.splice(findDom.childrenIndex, 1, newDom)
-          this.props.updateNode(nodeShadow)
-        }
-      } else {
-        findDom.targetDom.children.push(newDom)
-        this.props.updateNode(nodeShadow)
-      }
+      // if (isOutAdd) {
+      //   if (findDom.father.index === findDom.targetDom.index) {
+      //     newDom.children.push(findDom.father)
+      //     this.props.updateNode(newDom)
+      //   } else {
+      //     newDom.children.push(findDom.targetDom)
+      //     findDom.father.children.splice(findDom.childrenIndex, 1, newDom)
+      //     this.props.updateNode(nodeShadow)
+      //   }
+      // } else {
+      //
+      // }
+
+      findDom.targetDom.children.push(newDom)
+      this.props.updateNode(nodeShadow)
     } else {
-      console.log('not found')
+      console.warn('not found')
     }
   }
 
   delete () {
-    console.log('delte')
     let {currentDomIndex, node} = this.props
     let nodeShadow = JSON.parse(JSON.stringify(node))
     let findDom = this.getNode(nodeShadow, currentDomIndex)
@@ -97,26 +95,24 @@ export default class extends React.Component {
     }
   }
 
-  // 添加外部。
-  // 添加内部。
-  // 删除当前。
-  // 回调的时候。设置好node。设置好变更了的current
-
-  // 这边还要实现。组件选择功能。（组建复用）
-
-  // 那边要实现全局样式引入。（样式复用）
-
-  // 最后实现导出view(html导出)
-
   // 还有全局css去重导出（全局css复用，修改）
-
   // 还有页面级别的css去重导出（局部css扩展性）
-
   // 还有要支持样式回拼（基础css + 页面css + 页面布局。或者是，保存vdom。而且还有维护好vdom和全局静态的关系）
   renderList () {
-    let arr = comLibrary.staticIndex.map((comName, index) => {
-      return <div style={comName === this.state.currentType ? {color: 'red'} : {}} key={comName} onClick={() => {this.chooseComponent(comName)}}>{comName}</div>
-    })
+    let arr = []
+    for (let nodeName in this.props.libContext.vnodeLibrary) {
+      arr.push(<div style={nodeName === this.state.currentType ? {color: 'red'} : {}} key={nodeName} onClick={() => {this.chooseComponent(nodeName)}}>{nodeName}</div>)
+    }
+    return <div>
+      {arr}
+    </div>
+  }
+
+  renderPageList () {
+    let arr = []
+    for (let nodeName in this.props.libContext.pageLibrary) {
+      arr.push(<div style={nodeName === this.state.currentType ? {color: 'red'} : {}} key={nodeName} onClick={() => {this.chooseComponent(nodeName)}}>{nodeName}</div>)
+    }
     return <div>
       {arr}
     </div>
@@ -128,65 +124,71 @@ export default class extends React.Component {
     })
   }
 
-  renderCanPressButton (type) {
-    let style = {}
-    let pressStatus = {
-      backgroundColor: 'red'
-    }
-    if (type === 'out' && this.state.isOutAdd) {
-      style = pressStatus
-    }
-    if (type === 'inner' && !this.state.isOutAdd) {
-      style = pressStatus
-    }
-    return <div className='press-button' onClick={() => {this.onButtonPress(type)}} style={style}>
-      {type}
-      <style jsx>{`
-        .press-button {
-          width: 100px;
-          height: 20px;
-          text-align: center;
-          line-height: 20px;
-          background-color: white;
-          color: black;
-        }
-      `}</style>
-      </div>
-  }
+  // renderCanPressButton (type) {
+  //   let style = {}
+  //   let pressStatus = {
+  //     backgroundColor: 'red'
+  //   }
+  //   if (type === 'out' && this.state.isOutAdd) {
+  //     style = pressStatus
+  //   }
+  //   if (type === 'inner' && !this.state.isOutAdd) {
+  //     style = pressStatus
+  //   }
+  //   return <div className='press-button' onClick={() => {this.onButtonPress(type)}} style={style}>
+  //     {type}
+  //     <style jsx>{`
+  //       .press-button {
+  //         width: 100px;
+  //         height: 20px;
+  //         text-align: center;
+  //         line-height: 20px;
+  //         background-color: white;
+  //         color: black;
+  //       }
+  //     `}</style>
+  //     </div>
+  // }
 
-  onButtonPress (type) {
-    if (type === 'out') {
-      this.setState({
-        isOutAdd: true
-      })
-    } else {
-      this.setState({
-        isOutAdd: false
-      })
-    }
-  }
+  // onButtonPress (type) {
+  //   if (type === 'out') {
+  //     this.setState({
+  //       isOutAdd: true
+  //     })
+  //   } else {
+  //     this.setState({
+  //       isOutAdd: false
+  //     })
+  //   }
+  // }
 
   render () {
     // 循环
     return <div className='choose-component-out'>
-      <div className='choose-button'>
-        {this.renderCanPressButton('out')}
-        {this.renderCanPressButton('inner')}
-      </div>
       {this.renderList()}
-      <div onClick={() => {this.add()}}>添加</div>
-      <div onClick={() => {this.delete()}}>删除</div>
+      {this.renderPageList()}
+      <div className='button'>
+        <div onClick={() => {this.add()}}>添加</div>
+        <div onClick={() => {this.delete()}}>删除</div>
+      </div>
       <style jsx>{`
-        .choose-button {
-          border: 1px solid black;
-          display: flex;
-          width: 100px;
-          justify-content: space-between;
-        }
         .choose-component-out {
           border: 1px solid black;
+          width: 150px;
+          position: relative;
+        }
+        .button {
+          position: absolute;
+          top: 0;
+          right: 0;
         }
       `}</style>
     </div>
   }
+}
+
+export default function (props) {
+  return <Lib.Consumer>
+    {libContext => (<AddComponent libContext={libContext} {...props} />)}
+  </Lib.Consumer>
 }

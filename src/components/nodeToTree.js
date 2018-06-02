@@ -15,7 +15,6 @@ export default class NodeToTree extends React.Component {
     // });
   }
   onDrop = (info) => {
-    console.log(info);
     const dropKey = info.node.props.eventKey;
     if (info.node.props.nodeType === 'node-text') {
       return
@@ -84,26 +83,30 @@ export default class NodeToTree extends React.Component {
 
   onSelect (nodeIndex, e) {
     if (nodeIndex && nodeIndex.length) {
-      console.log(nodeIndex[0])
       this.props.onSelectDom(nodeIndex[0])
     }
 
   }
 
   render() {
-    return (
-      <div>
-        <Tree
-          className="draggable-tree"
-          defaultExpandAll
-          draggable
-          onDragEnter={this.onDragEnter}
-          onSelect={this.onSelect}
-          onDrop={this.onDrop}
-        >
-          {this.vNodeToDom(this.props.node)}
-        </Tree>
-      </div>
-    );
+    if (this.props.node) {
+      return (
+        <div>
+          <Tree
+            className="draggable-tree"
+            defaultExpandAll
+            draggable
+            onDragEnter={this.onDragEnter}
+            onSelect={this.onSelect}
+            onDrop={this.onDrop}
+          >
+            {this.vNodeToDom(this.props.node)}
+          </Tree>
+        </div>
+      );
+    } else {
+      return null
+    }
+
   }
 }

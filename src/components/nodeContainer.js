@@ -36,7 +36,7 @@ export default class extends React.Component {
     if (this.resetArr.length > 0) {
       this.props.updateNode(this.resetArr.pop())
     } else {
-      console.log('最多还原 x 步')
+      console.warn('最多还原 x 步')
     }
   }
 
@@ -45,22 +45,22 @@ export default class extends React.Component {
   }
 
 
-  renderClassArray (node) {
-    let {name, attrs, children, classInfo} = node
-    if (children) {
-      let cArr = children.map((node, index) => {
-        return this.renderClassArray(node)
-      }) || []
-      if (node.classInfo) {
-        cArr.unshift(<EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} updateNode={this.updateNode} node={node} />)
-      }
-        return cArr
-    } else {
-      if (node.classInfo) {
-        return <EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} updateNode={this.updateNode} node={node} />
-      }
-    }
-  }
+  // renderClassArray (node) {
+  //   let {name, attrs, children, classInfo} = node
+  //   if (children) {
+  //     let cArr = children.map((node, index) => {
+  //       return this.renderClassArray(node)
+  //     }) || []
+  //     if (node.classInfo) {
+  //       cArr.unshift(<EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} updateNode={this.updateNode} node={node} />)
+  //     }
+  //       return cArr
+  //   } else {
+  //     if (node.classInfo) {
+  //       return <EditClassName EditClassNameChange={(...e) => {this.EditClassNameChange(node, ...e)}} classNameArr={node.classInfo} updateNode={this.updateNode} node={node} />
+  //     }
+  //   }
+  // }
 
   onSelectDom (findIndex) {
     let findNode
@@ -105,7 +105,6 @@ export default class extends React.Component {
   }
 
   updateNode (nextNode) {
-    console.log(nextNode)
     this.saveToCache()
     this.props.updateNode(nextNode)
   }
@@ -125,29 +124,34 @@ export default class extends React.Component {
 
   render () {
     let {node} = this.props
-    // 循环
-    return <div>
-      <div className='menu-out-column'>
-        <div>
-          <div>当前选中的ID：{this.state.currentDomIndex}</div>
-          <div onClick={() => {this.cacheReset()}}>还原</div>
-          <NodeToDom currentDomIndex={this.state.currentDomIndex} onSelectDom={this.onSelectDom} node={node} />
-          {this.state.currenEditeDom.nodeType === 'node-text' ?
-            <EditText node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} /> : <EditClassName node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
-          }
+    if (node) {
+      // 循环
+      return <div>
+        <div className='menu-out-column'>
+          <div>
+            <div>当前选中的ID：{this.state.currentDomIndex}</div>
+            <div onClick={() => {this.cacheReset()}}>还原</div>
+            <NodeToDom currentDomIndex={this.state.currentDomIndex} onSelectDom={this.onSelectDom} node={node} />
+            {this.state.currenEditeDom.nodeType === 'node-text' ?
+              <EditText node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} /> : <EditClassName libContext={this.props.libContext} node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+            }
           </div>
-        <div>
-          <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
-          <AddNewClass node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+          <div>
+            <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
+            <AddNewClass node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+          </div>
+          <NodeToTree onSelectDom={this.onSelectDom} node={node} updateNode={this.updateNode} />
         </div>
-        <NodeToTree onSelectDom={this.onSelectDom} node={node} updateNode={this.updateNode} />
-      </div>
-      <style jsx>{`
+        <style jsx>{`
           .menu-out-column {
             display: flex;
             justify-content: flex-start;
           }
       `}</style>
-    </div>
+      </div>
+    } else {
+      return null
+    }
+
   }
 }
