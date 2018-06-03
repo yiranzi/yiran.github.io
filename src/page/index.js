@@ -252,7 +252,7 @@ export class Index extends React.Component {
   render () {
     return <div className={'out-out'}>
       <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.index}</div>
-      <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.pageName}</div>
+      <div>pathName：{this.state.currentDom && this.state.currentDom.pageName}</div>
         {this.state.json && <NodeContainer node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
         {this.renderUserControl()}
         <style>{`

@@ -129,18 +129,17 @@ export default class extends React.Component {
       return <div>
         <div className='menu-out-column'>
           <div>
-            <div>当前选中的ID：{this.state.currentDomIndex}</div>
             <div onClick={() => {this.cacheReset()}}>还原</div>
             <NodeToDom currentDomIndex={this.state.currentDomIndex} onSelectDom={this.onSelectDom} node={node} />
-            {this.state.currenEditeDom.nodeType === 'node-text' ?
-              <EditText node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} /> : <EditClassName libContext={this.props.libContext} node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
-            }
           </div>
           <div>
             <AddComponent currentDomIndex={this.state.currentDomIndex} updateNode={this.updateNode} node={node}  />
             <AddNewClass node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
           </div>
           <NodeToTree onSelectDom={this.onSelectDom} node={node} updateNode={this.updateNode} />
+          {this.state.currenEditeDom.nodeType === 'node-text' ?
+            <EditText node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} /> : <EditClassName libContext={this.props.libContext} node={this.state.currenEditeDom} saveToCache={this.saveToCache} updateClassName={this.updateClassName} />
+          }
         </div>
         <style jsx>{`
           .menu-out-column {

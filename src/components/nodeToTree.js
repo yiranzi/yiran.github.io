@@ -91,7 +91,7 @@ export default class NodeToTree extends React.Component {
   render() {
     if (this.props.node) {
       return (
-        <div>
+        <div className='out'>
           <Tree
             className="draggable-tree"
             defaultExpandAll
@@ -102,6 +102,12 @@ export default class NodeToTree extends React.Component {
           >
             {this.vNodeToDom(this.props.node)}
           </Tree>
+          <style jxs>{`
+            .out {
+              min-width: 200px;
+              overflow: hidden;
+            }
+          `}</style>
         </div>
       );
     } else {

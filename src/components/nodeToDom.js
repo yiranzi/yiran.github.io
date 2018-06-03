@@ -16,7 +16,7 @@ export default class extends React.Component {
     // 增加选中效果
     attrObj = JSON.parse(JSON.stringify(attrObj))
     if (index === this.props.currentDomIndex) {
-      attrObj.style.backgroundColor = 'gray'
+      attrObj.style.border = '1px dashed #848282'
     }
     let {nodeType, text} = node
     if (nodeType === 'node-text') {
@@ -113,6 +113,16 @@ export default class extends React.Component {
           afterKeyString += char
         }
       }
+      // 可以增加单位换算。
+      let wxRpx = valueString.split('rpx')
+      console.log('hehehe')
+      if (wxRpx && wxRpx.length > 1) {
+        let value = wxRpx[0]
+        let unit = wxRpx[1]
+        value = value / 2
+        unit = 'px'
+        valueString = value + unit
+      }
       attrObj[afterKeyString] = valueString
     }
   }
@@ -124,7 +134,7 @@ export default class extends React.Component {
         <style jsx>{`
           .node {
             width: 375px;
-            min-height: 667px;
+            min-height: 367px;
             background-color: #ffffff;
           }
         `}</style>

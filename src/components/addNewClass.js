@@ -54,7 +54,7 @@ export class AddNewClass extends React.Component {
         .choose-class-out {
           border: 1px solid black;
           display: flex;
-          width: 150px;
+          width: 180px;
           justify-content: space-between;
         }
       `}</style>
