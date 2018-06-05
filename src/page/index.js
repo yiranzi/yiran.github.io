@@ -17,6 +17,8 @@ export class Index extends React.Component {
     this.updateResetClass = this.updateResetClass.bind(this)
     this.changeAttrsInput = this.changeAttrsInput.bind(this)
     this.changeAttrs = this.changeAttrs.bind(this)
+    this.getLibByType = this.getLibByType.bind(this)
+    this.saveToCss = this.saveToCss.bind(this)
   }
 
   componentWillMount = async () => {
@@ -72,6 +74,7 @@ export class Index extends React.Component {
         currentNodeJson: JSON.stringify(json)
       })
       this.props.libContext.postLib(this.state.currentDom, 'vnode')
+      this.afterSave()
     } else {
       console.log('no name')
     }
@@ -84,24 +87,36 @@ export class Index extends React.Component {
     this.saveNodeToLib(this.state.json)
     // 3 在根据根节点生成文件
     this.props.libContext.postPage(this.state.json)
-    // this.saveNodeToLib(this.state.json)
     // this.outputClassFormat(this.state.json)
   }
 
+  saveToCss () {
+    this.props.libContext.postLib(this.props.libContext.copyClass, 'class')
+    this.afterSave()
+  }
+
+  afterSave () {
+    // 结束后自动关闭样式锁（避免忘记）
+    this.setState({
+      canEditClass: false
+    })
+  }
 
   renderUserControl () {
     if (this.state.currentDom) {
       return (
         <div className={"zao-flex-center"}>
           <div>
+            <div style={{display: 'flex'}}>根节点名称：{this.state.json && this.state.json.pathName}</div>
             <div style={{display: 'flex'}}><div onClick={() => {this.saveRootToFile()}}>根节点输出小程序</div></div>
-            <div style={{display: 'flex'}}><div onClick={() => {this.saveNodeToLib()}}>当前节点保存vnode</div></div>
             <div style={{display: 'flex'}}><div onClick={() => {this.setState({showAllAttr: !this.state.showAllAttr})}}>暴露Attr</div></div>
-            <div style={{display: 'flex'}}><div onClick={() => {this.setState({canEditClass: !this.state.canEditClass})}}>{this.state.canEditClass ? '样式锁关闭' : '样式锁开启'}</div></div>
-            <div style={{display: 'flex'}}>vnode：<input value={this.state.currentNodeJson} /></div>
-            <div style={{display: 'flex'}}>classInfo：<input value={JSON.stringify(this.props.libContext.copyClass)} /><div onClick={() => {this.props.libContext.postLib(this.props.libContext.copyClass, 'class')}}>保存class</div></div>
+            <div style={{display: 'flex'}}><div onClick={() => {this.setState({canEditClass: !this.state.canEditClass})}}>{this.state.canEditClass ? '样式锁已失效' : '样式锁已激活'}</div></div>
+            <div style={{display: 'flex'}}>classInfo：<input value={JSON.stringify(this.props.libContext.copyClass)} />
+              <div onClick={this.saveToCss}>保存class</div>
+            </div>
           </div>
           <div onClick={() => {this.emptyViewFromLib()}}>一键重置</div>
+          <div onClick={() => {this.props.libContext.exportCss()}}>导出静态css</div>
           <div>
             <div style={{display: 'flex'}}>
               <input value={this.state.inputJson} onChange={(e) => {this.setState({inputJson: e.target.value})}}/>
@@ -132,10 +147,6 @@ export class Index extends React.Component {
       let {attrs} = currentDom
     }
     let arr1 = []
-    arr1.push(<div className='zao-flex-center'>
-      <div>pathName</div>
-      <input value={currentDom['pathName']} onChange={(e) => {this.changeAttrsInput('pathName', e.target.value)}}/>
-    </div>)
     if (this.state.showAllAttr) {
       Object.keys(currentDom).forEach((name) => {
         if (!forbid.includes(name)) {
@@ -241,11 +252,11 @@ export class Index extends React.Component {
 
   getLibByType (item) {
     let findFromLib
-    if (this.state.canEditClass) {
+    if (!this.state.canEditClass) {
       let arr = ['def', 'zao', 'com']
 
       let findType = arr.find((type) => {
-        if (item.name === type) {
+        if (item.name.slice(0, 3) === type) {
           return true
         }
       })
@@ -259,9 +270,15 @@ export class Index extends React.Component {
   render () {
     return <div className={'out-out'}>
       <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.index}</div>
-      <div>pathName：{this.state.currentDom && this.state.currentDom.pathName}</div>
-      <div>pathName：{this.state.json && this.state.json.pathName}</div>
-        {this.state.json && <NodeContainer node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
+      <div className='zao-flex-center'>
+        <div>pathName</div>
+        {this.state.currentDom && <input value={this.state.currentDom['pathName'] || ''} onChange={(e) => {this.changeAttrsInput('pathName', e.target.value)}}/>}
+      </div>
+      <div onClick={() => {this.saveNodeToLib()}}>当前节点保存vnode</div>
+      <div style={{display: 'flex'}}>
+        vnode：<input value={this.state.currentNodeJson} />
+      </div>
+        {this.state.json && <NodeContainer getLibByType={this.getLibByType} node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
         {this.renderUserControl()}
         <style>{`
         * {
