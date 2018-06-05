@@ -1,103 +1,45 @@
 import React from 'react'
-
-// import AxiosUtil from '../util/axios'
-
 import {LibProvider, Lib} from '../context/componentsLib'
-
 import NodeContainer from '../components/nodeContainer'
+
 export class Index extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
       json: undefined,
       currentDom: undefined,
-      outputJson: '',
-      outputClassJson: ''
+      currentNodeJson: '',
+      outputClassJson: '',
+      showAllAttr: false,
+      canEditClass: false
     }
     this.changeCurrentDom = this.changeCurrentDom.bind(this)
-    this.updateClass = this.updateClass.bind(this)
-    this.changeName = this.changeName.bind(this)
-
+    this.updateResetClass = this.updateResetClass.bind(this)
+    this.changeAttrsInput = this.changeAttrsInput.bind(this)
+    this.changeAttrs = this.changeAttrs.bind(this)
   }
 
   componentWillMount = async () => {
     await this.props.libContext.updateLib('vnode')
     await this.props.libContext.updateLib('class')
-    this.jsToVNode()
+    this.emptyViewFromLib()
+    this.updateResetClass()
   }
 
-
-  formatDelete (nodes) {
-    // delete nodes.index
-    // delete nodes.myType
-    if (nodes.children) {
-      nodes.children.forEach((node) => {
-        // delete node.index
-        // delete node.myType
-        let {name, attrs, children} = node
-        let attrObj ={}
-        if (attrs) {
-
-        }
-        let {nodeType, text} = node
-        if (nodeType === 'node-text') {
-        } else {
-          if (children) {
-            children.forEach((node, index) => {
-              return this.formatDelete(node)
-            })
-          } else {
-          }
-        }
-      })
-    }
-  }
-
-  outputAll () {
-    // this.outputFormat(this.state.json)
-    // this.outputClassFormat(this.state.json)
-  }
-
-  changeName (e) {
-    let {currentDom} = this.state
-    currentDom.pageName = e.target.value
+  emptyViewFromLib () {
+    let node = this.props.libContext.getLib('view', 'vnode')
     this.setState({
-      currentDom: currentDom
+      json: node,
+      currentDom: node,
     })
   }
 
-  renderUserControl () {
-    if (this.state.currentDom) {
-      return (
-        <div className={""}>
-          <div>
-            <div style={{display: 'flex'}}><div onClick={() => {this.outputAll()}}>根节点输出小程序</div></div>
-            <div style={{display: 'flex'}}><input value={this.state.currentDom.pageName || ''} onChange={this.changeName} /><div onClick={() => {this.outputFormat()}}>当前节点保存vnode</div></div>
-            <div style={{display: 'flex'}}><div>vnode：</div><input value={this.state.outputJson} /></div>
-            <div style={{display: 'flex'}}><input value={JSON.stringify(this.props.libContext.copyClass)} /><div onClick={() => {this.props.libContext.postLib(this.props.libContext.copyClass, 'class')}}>保存class</div></div>
-          </div>
-          <div onClick={() => {this.jsToVNode()}}>一键重置</div>
-          <div>
-            <div style={{display: 'flex'}}>
-              <div onClick={() => {this.resetLast(0)}}>还原</div>
-              <input value={this.state.inputJson} onChange={(e) => {this.setState({inputJson: e.target.value})}}/>
-              <div onClick={() => {this.resetLast(1)}}>导入</div>
-              <div onClick={this.updateClass}>净化</div>
-            </div>
-          </div>
-        </div>
-      )
-    }
-  }
-
-  updateClass () {
+  updateResetClass () {
     const loop = (node) => {
       let {children} = node
       if (node.classInfo) {
         node.classInfo.forEach((item, index) => {
-          if (item.name.includes('zao') || item.name.includes('default')) {
-            node.classInfo[index] = this.props.libContext.getLib(item.name, 'class') || node.classInfo[index]
-          }
+          node.classInfo[index] = this.getLibByType(item)
         })
       }
       if (children && children.length) {
@@ -111,8 +53,178 @@ export class Index extends React.Component {
       json: this.state.json,
       currentDom: this.state.json
     },() => {
-      this.outputFormat()
+      // this.saveNodeToLib()
     })
+  }
+
+  saveNodeToLib (json = this.state.currentDom) {
+    if (this.state.currentDom.pathName) {
+      json = JSON.parse(JSON.stringify(json))
+      json.classInfo.forEach((oneClass) => {
+        let arr = []
+        oneClass.styleArr.forEach((oneClass) => {
+          if (oneClass.name && oneClass.value) {
+            arr.push(oneClass)
+          }
+        })
+      })
+      this.setState({
+        currentNodeJson: JSON.stringify(json)
+      })
+      this.props.libContext.postLib(this.state.currentDom, 'vnode')
+    } else {
+      console.log('no name')
+    }
+  }
+
+  saveRootToFile () {
+    // 1 先从根节点同步。
+    this.updateResetClass()
+    // 2 再保存根节点vnode
+    this.saveNodeToLib(this.state.json)
+    // 3 在根据根节点生成文件
+    this.props.libContext.postPage(this.state.json)
+    // this.saveNodeToLib(this.state.json)
+    // this.outputClassFormat(this.state.json)
+  }
+
+
+  renderUserControl () {
+    if (this.state.currentDom) {
+      return (
+        <div className={"zao-flex-center"}>
+          <div>
+            <div style={{display: 'flex'}}><div onClick={() => {this.saveRootToFile()}}>根节点输出小程序</div></div>
+            <div style={{display: 'flex'}}><div onClick={() => {this.saveNodeToLib()}}>当前节点保存vnode</div></div>
+            <div style={{display: 'flex'}}><div onClick={() => {this.setState({showAllAttr: !this.state.showAllAttr})}}>暴露Attr</div></div>
+            <div style={{display: 'flex'}}><div onClick={() => {this.setState({canEditClass: !this.state.canEditClass})}}>{this.state.canEditClass ? '样式锁关闭' : '样式锁开启'}</div></div>
+            <div style={{display: 'flex'}}>vnode：<input value={this.state.currentNodeJson} /></div>
+            <div style={{display: 'flex'}}>classInfo：<input value={JSON.stringify(this.props.libContext.copyClass)} /><div onClick={() => {this.props.libContext.postLib(this.props.libContext.copyClass, 'class')}}>保存class</div></div>
+          </div>
+          <div onClick={() => {this.emptyViewFromLib()}}>一键重置</div>
+          <div>
+            <div style={{display: 'flex'}}>
+              <input value={this.state.inputJson} onChange={(e) => {this.setState({inputJson: e.target.value})}}/>
+              <div onClick={() => {this.inputJsonToNode()}}>导入</div>
+              <div onClick={this.updateResetClass}>同步样式</div>
+            </div>
+          </div>
+          {this.renderAttr()}
+        </div>
+      )
+    }
+  }
+
+  inputJsonToNode () {
+    // 导入
+    let json = this.state.inputJson
+    this.setState({
+      json: JSON.parse(json),
+      currentDom: JSON.parse(json),
+      inputJson: json,
+    }, this.updateResetClass)
+  }
+
+  renderAttr () {
+    let currentDom = this.state.currentDom
+    let forbid = ['attrs', 'index', 'classInfo', 'children', 'pathName']
+    if (currentDom) {
+      let {attrs} = currentDom
+    }
+    let arr1 = []
+    arr1.push(<div className='zao-flex-center'>
+      <div>pathName</div>
+      <input value={currentDom['pathName']} onChange={(e) => {this.changeAttrsInput('pathName', e.target.value)}}/>
+    </div>)
+    if (this.state.showAllAttr) {
+      Object.keys(currentDom).forEach((name) => {
+        if (!forbid.includes(name)) {
+          arr1.push(<div className='zao-flex-center local-space-between'>
+            <div>{name}</div>
+            <input value={currentDom[name]} onChange={(e) => {this.changeAttrsInput(name, e.target.value)}}/>
+          </div>)
+        }
+      })
+    }
+    let arr2 = []
+    if (currentDom.attrs && currentDom.attrs.length) {
+      arr2 = currentDom.attrs.map((oneAttr, attrsIndex) => {
+        return <div className='zao-flex-center local-space-between'>
+          <input value={oneAttr.name} onChange={(e) => {this.changeAttrsInput('attrsName', e.target.value, attrsIndex)}}/>
+          <input value={oneAttr.value} onChange={(e) => {this.changeAttrsInput('attrsValue', e.target.value, attrsIndex)}}/>
+          <div style={{marginLeft: '30px'}} onClick={() => {this.changeAttrsInput('attrsDelete', '', attrsIndex)}}>delete</div>
+        </div>
+      })
+    }
+    return (
+      <div>
+        <div>{arr1}</div>
+        <div>attrs：
+          <div>{arr2}</div>
+        </div>
+        <div onClick={() => {this.changeAttrsInput('attrsAdd')}}>add</div>
+      </div>
+    )
+  }
+
+  changeAttrsInput (type, value, attrsIndex) {
+    let {currentDom} = this.state
+    let {json} = this.state
+    let findNode
+      let loop = (node, findIndex) => {
+      if (node.index === findIndex) {
+        findNode = node
+      }
+      if (node.children && node.children.length) {
+        node.children.forEach((node) => {
+          loop(node, findIndex)
+        })
+      }
+    }
+    loop(json, currentDom.index)
+    if (findNode) {
+      // 判定type
+      if (type.includes('attrs')) {
+        this.attrsEdit(findNode, type, value, attrsIndex)
+      } else {
+        this.changeAttrs(findNode, type, value)
+      }
+    }
+    this.setState({
+      currentDom: findNode
+    })
+  }
+
+  changeAttrs (node, type, value) {
+    switch (type) {
+      case 'nodeType':
+        node[type] = value
+        break;
+      case 'name':
+        node[type] = value
+        break;
+      case 'pathName':
+        node[type] = value
+        break;
+    }
+  }
+
+  attrsEdit (node, type, value, attrsIndex) {
+    let attrArr = node.attrs
+    switch (type) {
+      case 'attrsName':
+        attrArr[attrsIndex].name = value;
+        break;
+      case 'attrsValue':
+        attrArr[attrsIndex].value = value;
+        break;
+      case 'attrsDelete':
+        attrArr.splice(attrsIndex, 1);
+        break;
+      case 'attrsAdd':
+        attrArr.push({name: '', value: ''})
+        break;
+    }
   }
 
   updateNode (node) {
@@ -127,132 +239,28 @@ export class Index extends React.Component {
     })
   }
 
+  getLibByType (item) {
+    let findFromLib
+    if (this.state.canEditClass) {
+      let arr = ['def', 'zao', 'com']
 
-  outputFormat (json = this.state.currentDom) {
-    if (this.state.currentDom.pageName) {
-      localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
-      console.log('重置之前。上次的结果已经保存。')
-      json = JSON.parse(JSON.stringify(json))
-      json.classInfo.forEach((oneClass) => {
-        let arr = []
-        oneClass.styleArr.forEach((oneClass) => {
-          if (oneClass.name && oneClass.value) {
-            arr.push(oneClass)
-          }
-        })
+      let findType = arr.find((type) => {
+        if (item.name === type) {
+          return true
+        }
       })
-      // json.classInfo.styleArr = arr
-      // 开始格式化处理
-      // json.nodes.forEach((node) => {
-      //   this.formatDelete(node)
-      // })
-      this.setState({
-        outputJson: JSON.stringify(json)
-      })
-      this.props.libContext.postLib(this.state.currentDom, 'vnode')
-    } else {
-      console.error('no name')
-    }
-  }
-
-
-  outputClassFormat (json = this.state.currentDom) {
-    json = JSON.parse(JSON.stringify(json))
-    // 遍历
-    let arr = [
-
-    ]
-    const getClassLoop = (node) => {
-      if (node.classInfo) {
-        arr = arr.concat(node.classInfo)
-      }
-      if (node.children) {
-        node.children.forEach((item) => {
-          getClassLoop(item)
-        })
+      if (findType) {
+        findFromLib = this.props.libContext.getLib(item.name, 'class')
       }
     }
-    getClassLoop(json)
-    // this.jsonToCss(arr)
-    this.setState({
-      outputClassJson: JSON.stringify(arr)
-    })
-    // this.postClassData(arr)
-  }
-
-  // postClassData = async (arr) => {
-  //   // 准备发起请求。
-  //   console.log('try')
-  //   let name = arr[0].name
-  //   let type = 'class'
-  //   let data = JSON.stringify(arr[0])
-  //   console.log(data)
-  //   // let courseInfo = await AxiosUtil.get(`write?type=${type}&name=${name}&data=${data}`)
-  //   let courseInfo = await AxiosUtil.post(`write`, {name, type, data})
-  // }
-
-  jsonToCss (jsonArr) {
-    let afterUnique = {}
-    let string = ''
-    // 1 遍历去重
-    const unique = (arr) => {
-      arr.forEach((item) => {
-        afterUnique[item.name] = item.styleArr
-      })
-    }
-    const pipe = (classInnerArr, subString) => {
-      classInnerArr.forEach((classInner) => {
-        let {name, value} = classInner
-        subString += name + ': ' + value + ';'
-      })
-      return subString
-    }
-    unique(jsonArr)
-    Object.keys(afterUnique).forEach((classNameKey) => {
-      let subString = ''
-      subString = pipe(afterUnique[classNameKey], subString)
-      string += '.' + classNameKey + `{${subString}}`
-    })
-  }
-
-  // 如何新增一个顶部节点。如何删除一个顶部节点？
-
-  // 图片和标题是一一对应的。可以点击更换
-
-  jsToVNode () {
-    // 保存最后一次数据
-    localStorage.setItem('saveWorld', JSON.stringify(this.state.json))
-    console.log('重置之前。上次的结果已经保存。')
-    let node = this.props.libContext.getLib('view', 'vnode')
-    this.setState({
-      json: node,
-      currentDom: node,
-    })
-  }
-
-  resetLast (type) {
-    // 导入
-    if (type === 1) {
-      let json = this.state.inputJson
-      this.setState({
-        json: JSON.parse(json),
-        currentDom: JSON.parse(json),
-        inputJson: json,
-      })
-    } else {
-      // 还原
-      let json = localStorage.getItem('saveWorld')
-      this.setState({
-        json: JSON.parse(json),
-        inputJson: json,
-      })
-    }
+    return findFromLib || item
   }
 
   render () {
     return <div className={'out-out'}>
       <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.index}</div>
-      <div>pathName：{this.state.currentDom && this.state.currentDom.pageName}</div>
+      <div>pathName：{this.state.currentDom && this.state.currentDom.pathName}</div>
+      <div>pathName：{this.state.json && this.state.json.pathName}</div>
         {this.state.json && <NodeContainer node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
         {this.renderUserControl()}
         <style>{`
@@ -267,7 +275,58 @@ export class Index extends React.Component {
         }
       `}
         </style>
-      </div>
+      <style jsx global>{`
+        .local-space-between {
+          justify-content: space-between;
+        }
+        .zao-font-normal {
+          font-size: 14px;
+          color: #333333;
+          line-height: 24px;
+        }
+        .zao-flex-column {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .zao-center {
+          text-align: center;
+        }
+        .zao-font-11 {
+          font-size: 11px;
+        }
+        .zao-color-white {
+          color: #ffffff;
+        }
+        .zao-font-bold {
+          font-weight: bold;
+        }
+        .zao-font-16 {
+          font-size: 16px;
+        }
+        .zao-radius-4 {
+          border-radius: 4px;
+        }
+        .zao-view {
+          box-sizing: border-box;
+        }
+        .zao-bold {
+          font-weight: bold;
+          font-size: 18px;
+        }
+        .zao-font-info {
+          font-size: 11px;
+          color: #333333;
+          line-height: 16px;
+        }
+        .zao-flex-center {
+          display: flex;
+          align-items: center;
+          align-items: center;
+        }
+      `}
+      </style>
+    </div>
   }
 }
 
