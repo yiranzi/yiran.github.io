@@ -107,6 +107,7 @@ export default class extends React.Component {
       classNames.push(this.getEmptyClass())
     }
     let arr = classNames.map((className, classNameIndex) => {
+      className = this.props.getLibByType(className) || className
       return (<div key={classNameIndex + classNameIndex} className='class-edit-div'>
         <div className='class-name'>
           <input onChange={(e) => {this.classNameChange(e, classNameIndex)}} value={className.name}/>

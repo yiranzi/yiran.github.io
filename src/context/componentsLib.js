@@ -7,6 +7,7 @@ export const Lib = React.createContext()
 export class LibProvider extends React.Component {
   constructor (props) {
     super(props)
+    // 初始化拉数据（根据类型）
     this.updateLib = async (type) => {
       let res = await AxiosUtil.get(`/getListData?type=${type}`)
       switch (type) {
@@ -22,19 +23,35 @@ export class LibProvider extends React.Component {
       return res
     }
 
+    // 保存样式，保存节点
     this.postLib = async (data, type) => {
       let name
       if (type === 'vnode') {
-        name = data.pageName
+        name = data.pathName
         let afterUpdateList = await AxiosUtil.post(`write`, {name, type, data})
         this.vnodeFilter(afterUpdateList)
+        // 更新com会重新更新样式。所以从新拉取样式
+        this.updateLib('class')
       } else {
+        // class
         name = data.name
         let afterUpdateList = await AxiosUtil.post(`write`, {name, type, data})
         this.setState({
           classLibrary: afterUpdateList
         })
       }
+    }
+
+    // 根据vnode导出静态css
+    this.exportCss = async () => {
+      await AxiosUtil.get(`exportCss`)
+    }
+
+    // 导出页面
+    this.postPage = async (data) => {
+      let result = await AxiosUtil.post(`savePage`, {json: data})
+      alert ('post ' + result)
+      return result
     }
 
     this.getLib = (name, type) => {
@@ -53,6 +70,7 @@ export class LibProvider extends React.Component {
       }
     }
 
+    // 当前正在编辑的样式
     this.changeCopyClass = (copyClass) => {
       this.setState({
         copyClass: copyClass
@@ -67,7 +85,9 @@ export class LibProvider extends React.Component {
       getLib: this.getLib, // 获取
       updateLib: this.updateLib, // 更新
       postLib: this.postLib, // 更新
-      changeCopyClass: this.changeCopyClass // 更新
+      changeCopyClass: this.changeCopyClass, // 更新
+      postPage: this.postPage, // 更新
+      exportCss: this.exportCss // 更新
     }
     this.vnodeFilter = this.vnodeFilter.bind(this)
   }

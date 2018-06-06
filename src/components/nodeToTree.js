@@ -63,7 +63,7 @@ export default class NodeToTree extends React.Component {
 
   vNodeToDom (node) {
     // 根据json。设置出来最单纯的block。
-    let {name, attrs, children, classInfo} = node
+    let {children} = node
     let {nodeType, text} = node
     if (nodeType === 'node-text') {
       return <TreeNode title={text} nodeType={node.nodeType} key={node.index} />

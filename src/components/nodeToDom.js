@@ -2,6 +2,7 @@ import React from 'react'
 export default class extends React.Component {
   constructor (props) {
     super(props)
+    this.transAttrToReact = this.transAttrToReact.bind(this)
   }
 
   // 这个神奇的函数。可以利用react的函数，
@@ -47,48 +48,49 @@ export default class extends React.Component {
     let attrObj = {
       style: {}
     }
-    if (attrs) {
-      let {style, src, onClick} = attrs
-      // class是保留字
-      if (attrs['class']) {
-        attrObj.className = attrs['class']
-        // 从样式中取出。
-        this.classStringToStyle(attrObj.style, style)
-      }
-      // classInfo动态注入到style样式中
-      if (classInfo) {
-        // 每个class
-        classInfo.forEach((oneClass) => {
-          oneClass.styleArr.forEach((styleString) => {
-            this.arrToStyle(attrObj.style, [styleString.name, styleString.value])
-          })
-
+    if (classInfo) {
+      // 每个class
+      classInfo.forEach((oneClass) => {
+        oneClass = this.props.getLibByType(oneClass) || oneClass
+        oneClass.styleArr.forEach((styleString) => {
+          this.arrToStyle(attrObj.style, [styleString.name, styleString.value])
         })
-      }
-      // 将输入的style样式转换为react的style
-      if (style) {
-        this.classStringToStyle(attrObj.style, style)
-      }
-      if (src) {
-        attrObj.src = src
-      }
-      if (onClick) {
-        attrObj.onClick = onClick
-      }
+      })
+    }
+    if (attrs && attrs.length) {
+      // class是保留字
+      // if (attrs['class']) {
+      //   attrObj.className = attrs['class']
+        // 从样式中取出。
+        // this.classStringToStyle(attrObj.style, style)
+      // }
+      // classInfo动态注入到style样式中
 
+      // 将输入的style样式转换为react的style
+      // if (style) {
+      //   this.classStringToStyle(attrObj.style, style)
+      // }
+
+      // 需要查找并且赋值的列表
+      let need = ['src']
+      attrs.forEach((attr) => {
+        if (attr.name === 'src') {
+          attrObj.src = attr.value
+        }
+      })
     }
     return attrObj
   }
 
-  classStringToStyle (attrObj, styleString) {
-    // 1 删除掉空格
-    if (styleString) {
-      styleString = styleString.replace(/\s+/g,"")
-      // 3 分割
-      let arrStyle = styleString.split(/:|;/)
-      this.arrToStyle(attrObj.style, arrStyle)
-    }
-  }
+  // classStringToStyle (attrObj, styleString) {
+  //   // 1 删除掉空格
+  //   if (styleString) {
+  //     styleString = styleString.replace(/\s+/g,"")
+  //     // 3 分割
+  //     let arrStyle = styleString.split(/:|;/)
+  //     this.arrToStyle(attrObj.style, arrStyle)
+  //   }
+  // }
 
   //
   arrToStyle (attrObj, arrStyle) {

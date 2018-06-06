@@ -19,20 +19,22 @@ export class AddComponent extends React.Component {
     let {currentDomIndex, node} = this.props
     let nodeShadow = JSON.parse(JSON.stringify(node))
     let findDom = this.getNode(nodeShadow, currentDomIndex)
-    if (findDom.father && findDom.targetDom) {
-      // if (isOutAdd) {
-      //   if (findDom.father.index === findDom.targetDom.index) {
-      //     newDom.children.push(findDom.father)
-      //     this.props.updateNode(newDom)
-      //   } else {
-      //     newDom.children.push(findDom.targetDom)
-      //     findDom.father.children.splice(findDom.childrenIndex, 1, newDom)
-      //     this.props.updateNode(nodeShadow)
-      //   }
-      // } else {
-      //
-      // }
-
+    if (findDom.targetDom) {
+      const loop = (node) => {
+        let {children} = node
+        if (node.classInfo) {
+          node.classInfo.forEach((item, index) => {
+            node.classInfo[index] = this.props.getLibByType(item)
+          })
+        }
+        if (children && children.length) {
+          children.forEach((node) => {
+            loop(node)
+          })
+        }
+      }
+      loop(newDom)
+      // 1 遍历。并且
       findDom.targetDom.children.push(newDom)
       this.props.updateNode(nodeShadow)
     } else {
@@ -45,12 +47,14 @@ export class AddComponent extends React.Component {
     let nodeShadow = JSON.parse(JSON.stringify(node))
     let findDom = this.getNode(nodeShadow, currentDomIndex)
 
-    if (findDom.father && findDom.targetDom) {
+    if (findDom.targetDom) {
       // 他是否是根节点？
-      if (findDom.father.index !== findDom.targetDom.index) {
+      if (findDom.father) {
         // 更换绑定。
         findDom.father.children.splice(findDom.childrenIndex, 1)
         this.props.updateNode(nodeShadow)
+      } else {
+        this.props.updateNode(this.props.node.children[0])
       }
     } else {
       console.log('not found')
@@ -64,7 +68,7 @@ export class AddComponent extends React.Component {
       if (node.index === this.props.node.index) {
         // 如果就是本人
         return {
-          father: node,
+          father: null,
           childrenIndex: -1,
           targetDom: node,
         }
