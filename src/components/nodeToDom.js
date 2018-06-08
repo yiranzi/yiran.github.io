@@ -116,28 +116,52 @@ export default class extends React.Component {
         }
       }
       // 可以增加单位换算。
-      let wxRpx = valueString.split('rpx')
-      console.log('hehehe')
-      if (wxRpx && wxRpx.length > 1) {
-        let value = wxRpx[0]
-        let unit = wxRpx[1]
-        value = value / 2
-        unit = 'px'
-        valueString = value + unit
+      if (valueString.includes('rpx')) {
+        let wxRpx = valueString.split(' ')
+        if (wxRpx && wxRpx.length) {
+          console.log('transe')
+          // let afterTrans = ''
+          // for (let i = 0; i < wxRpx.length; i++) {
+          //   if (wxRpx[i]) {
+          //     let value = wxRpx[i]
+          //     let unit = wxRpx[i + 1]
+          //     value = value / 2
+          //     unit = 'px '
+          //     afterTrans += value + unit
+          //   }
+          // }
+          let afterTrans = ''
+          wxRpx.forEach((item, index) => {
+            let rpxArr = item.split('rpx')
+            if (rpxArr && rpxArr.length > 1) {
+              afterTrans += rpxArr[0]/2 + 'px '
+            } else {
+              afterTrans += item + ' '
+            }
+          })
+          console.log(afterTrans)
+          attrObj[afterKeyString] = afterTrans
       }
-      attrObj[afterKeyString] = valueString
+
+      } else {
+        attrObj[afterKeyString] = valueString
+      }
+
     }
   }
 
   render () {
     if (this.props.node) {
       return <div className='node'>
-        {this.vNodeToDom(this.props.node)}
+          {this.vNodeToDom(this.props.node)}
         <style jsx>{`
           .node {
             width: 375px;
             min-height: 367px;
-            background-color: #ffffff;
+            background-color: #F2F2F2;
+            position: absolute;
+            top: 0;
+            left: 0;
           }
         `}</style>
       </div>

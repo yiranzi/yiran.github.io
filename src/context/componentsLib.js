@@ -15,8 +15,10 @@ export class LibProvider extends React.Component {
           this.vnodeFilter(res)
           break
         case 'class':
+          let {show, lib} = res
           this.setState({
-            classLibrary: res
+            classLibrary: lib,
+            classShow: show
           })
           break
       }
@@ -31,15 +33,16 @@ export class LibProvider extends React.Component {
         let afterUpdateList = await AxiosUtil.post(`write`, {name, type, data})
         this.vnodeFilter(afterUpdateList)
         // 更新com会重新更新样式。所以从新拉取样式
-        this.updateLib('class')
+
       } else {
         // class
         name = data.name
         let afterUpdateList = await AxiosUtil.post(`write`, {name, type, data})
-        this.setState({
-          classLibrary: afterUpdateList
-        })
+        // this.setState({
+        //   classLibrary: afterUpdateList
+        // })
       }
+      this.updateLib('class')
     }
 
     // 根据vnode导出静态css
@@ -79,6 +82,7 @@ export class LibProvider extends React.Component {
 
     this.state = {
       classLibrary: {}, // 课程列表
+      classShow: {}, // 展示
       vnodeLibrary: undefined, // 课程列表
       pageLibrary: {}, // 课程列表
       copyClass: {},

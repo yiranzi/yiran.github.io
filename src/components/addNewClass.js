@@ -13,7 +13,7 @@ export class AddNewClass extends React.Component {
 
   renderList () {
     let arr = []
-    for (let className in this.props.libContext.classLibrary) {
+    for (let className in this.props.libContext.classShow) {
       arr.push(<div style={className === this.state.currentType ? {color: 'red'} : {}} key={className} onClick={() => {this.chooseClass(className)}}>{className}</div>)
     }
     return <div>
@@ -54,7 +54,7 @@ export class AddNewClass extends React.Component {
         .choose-class-out {
           border: 1px solid black;
           display: flex;
-          width: 180px;
+          width: 280px;
           justify-content: space-between;
         }
       `}</style>

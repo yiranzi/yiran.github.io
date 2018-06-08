@@ -178,7 +178,7 @@ export class AddComponent extends React.Component {
       <style jsx>{`
         .choose-component-out {
           border: 1px solid black;
-          width: 180px;
+          width: 280px;
           position: relative;
         }
         .button {

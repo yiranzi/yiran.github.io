@@ -105,7 +105,8 @@ export class Index extends React.Component {
   renderUserControl () {
     if (this.state.currentDom) {
       return (
-        <div className={"zao-flex-center"}>
+        <div className={"zao-flex-center out"}>
+          {this.renderProjectInfo()}
           <div>
             <div style={{display: 'flex'}}>根节点名称：{this.state.json && this.state.json.pathName}</div>
             <div style={{display: 'flex'}}><div onClick={() => {this.saveRootToFile()}}>根节点输出小程序</div></div>
@@ -125,6 +126,15 @@ export class Index extends React.Component {
             </div>
           </div>
           {this.renderAttr()}
+          <style jsx>{`
+            .out {
+              position: relative;
+              left: 375px;
+            }
+            .out > div {
+              margin-left: 30px;
+            }
+          `}</style>
         </div>
       )
     }
@@ -267,19 +277,25 @@ export class Index extends React.Component {
     return findFromLib || item
   }
 
+  renderProjectInfo () {
+    return <div>
+        <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.index}</div>
+        <div className='zao-flex-center'>
+          <div>pathName</div>
+          {this.state.currentDom && <input value={this.state.currentDom['pathName'] || ''} onChange={(e) => {this.changeAttrsInput('pathName', e.target.value)}}/>}
+        </div>
+        <div onClick={() => {this.saveNodeToLib()}}>当前节点保存vnode</div>
+        <div style={{display: 'flex'}}>
+          vnode：<input value={this.state.currentNodeJson} />
+        </div>
+      </div>
+
+  }
+
   render () {
     return <div className={'out-out'}>
-      <div>当前选中的ID：{this.state.currentDom && this.state.currentDom.index}</div>
-      <div className='zao-flex-center'>
-        <div>pathName</div>
-        {this.state.currentDom && <input value={this.state.currentDom['pathName'] || ''} onChange={(e) => {this.changeAttrsInput('pathName', e.target.value)}}/>}
-      </div>
-      <div onClick={() => {this.saveNodeToLib()}}>当前节点保存vnode</div>
-      <div style={{display: 'flex'}}>
-        vnode：<input value={this.state.currentNodeJson} />
-      </div>
-        {this.state.json && <NodeContainer getLibByType={this.getLibByType} node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
         {this.renderUserControl()}
+        {this.state.json && <NodeContainer getLibByType={this.getLibByType} node={this.state.json} libContext={this.props.libContext} changeCurrentDom={this.changeCurrentDom} updateNode={(...e) => {this.updateNode(...e)}} />}
         <style>{`
         * {
           margin: 0
@@ -340,6 +356,9 @@ export class Index extends React.Component {
           display: flex;
           align-items: center;
           align-items: center;
+        }
+        .zao-flex-shrink {
+          flex-shrink: 0;
         }
       `}
       </style>
