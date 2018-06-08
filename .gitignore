@@ -7,6 +7,7 @@
 /coverage
 /.idea
 /old
+/build
 
 # production
 
