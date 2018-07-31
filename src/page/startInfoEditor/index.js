@@ -191,6 +191,20 @@ export default class extends React.Component {
     return a
   }
 
+  pushImage (item) {
+    console.log('pushImage')
+    let imgNode = {}
+    imgNode.index = this.indexCount++
+    imgNode.myType = 'img-node-inner'
+    imgNode.name = 'img'
+    imgNode.attrs = {
+      class: 'rich-img-inner',
+      // src: item.img
+      src: 'https://xiaozaoresource.xiaozao.org/%E8%BF%90%E8%90%A5%E7%94%A8%E5%9B%BE/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E5%B0%81%E9%9D%A2%E5%9B%BE.jpg'
+    }
+    return imgNode
+  }
+
   pushIcon (item) {
     let imgNode = {}
     imgNode.index = this.indexCount++
@@ -453,7 +467,14 @@ export default class extends React.Component {
         this.setState({
           showChoose: !this.state.showChoose
         })
-
+      case 5:
+        // 判断节点类型。进行同级新增。
+        findNode.children.splice(findPos+1, 0, this.pushImage())
+        break;
+      case 6:
+        // 修改内容
+        console.log('chagen img')
+        findNode.children[findPos].attrs.src = content
         break
     }
     this.setState({
@@ -501,6 +522,12 @@ export default class extends React.Component {
         color: #333333;
         line-height: 24px;
         margin: 20px auto;
+        }
+        .rich-img-inner {
+          width: 50%;
+          margin: auto;
+          display: block;
+          margin-top: 10px;
         }
         .rich-img {
           height: 20px;

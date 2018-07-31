@@ -16,13 +16,20 @@ export default class extends React.Component {
     this.props.change(0, this.props.node.index)
   }
 
+  addImg () {
+    this.props.change(5, this.props.node.index)
+  }
+
   addStyle () {
     this.props.change(2, this.props.node.index)
   }
 
   inputChange (e) {
-    console.log(e.target.value)
     this.props.change(3, this.props.node.index, e.target.value)
+  }
+
+  imgChange (e) {
+    this.props.change(6, this.props.node.index, e.target.value)
   }
 
   changeImage () {
@@ -37,6 +44,7 @@ export default class extends React.Component {
           <div className={'button'} onClick={() => {this.addStyle()}}>样式</div>
           <input style={{color: 'inherit'}} value={this.props.children} onChange={this.inputChange} />
           <div className={'button'} onClick={() => {this.addBr()}}>换行</div>
+          <div className={'button'} onClick={() => {this.addImg()}}>加图</div>
         </div>
         break
       case 'br-arr':
@@ -47,6 +55,15 @@ export default class extends React.Component {
       default:
         return this.props.children
     }
+  }
+
+  renderByType2 (src) {
+    return <div>
+      <div className={'button'} onClick={() => {this.addStyle()}}>样式</div>
+      <input style={{color: 'inherit'}} value={src} onChange={(e) => {this.imgChange(e)}} />
+      <div className={'button'} onClick={() => {this.addBr()}}>换行</div>
+      <div className={'button'} onClick={() => {this.addImg()}}>加图</div>
+    </div>
   }
 
 
@@ -60,6 +77,15 @@ export default class extends React.Component {
         break
       case 'img-node':
         return <img src={this.props.node.attrs.src}/>
+        break
+      case 'img-node-inner':
+        return (
+          <div style={outStyle} className={'out'}>
+          <div className={'button'} onClick={() => {this.delete()}}>-</div>
+          {this.renderByType2(this.props.node.attrs.src)}
+          <div className={'button'} onClick={() => {this.add()}}>+</div>
+          </div>
+          )
         break
       case 'out-div':
         return (
